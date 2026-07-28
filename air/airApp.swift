@@ -10,23 +10,18 @@ import SwiftData
 
 @main
 struct airApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .containerShape(.rect(cornerRadius: 20)) 
+                .frame(width: 1400, height: 800)
+                .onAppear {
+                    if let window = NSApplication.shared.windows.first(where: { $0.isKeyWindow }) {
+                        window.center()
+                    }
+                }
         }
-        .modelContainer(sharedModelContainer)
+        .windowResizability(.contentSize)
+        .windowStyle(.hiddenTitleBar)
     }
 }
