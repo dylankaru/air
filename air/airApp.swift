@@ -13,7 +13,7 @@ struct airApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .containerShape(.rect(cornerRadius: 20)) 
+                .containerShape(.rect(cornerRadius: 20))
                 .frame(width: 1400, height: 800)
                 .onAppear {
                     if let window = NSApplication.shared.windows.first(where: { $0.isKeyWindow }) {
@@ -23,5 +23,11 @@ struct airApp: App {
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)
+        
+        Window("Settings", id: "settings-window") {
+            SettingsView()
+        }
+        .windowResizability(.contentSize)
+        .defaultPosition(.center)
     }
 }

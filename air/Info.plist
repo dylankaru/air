@@ -2,8 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSAppleEventsUsageDescription</key>
+	<string>air uses AppleEvents to communicate with other apps, such as Spotify and Apple Music</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>We use your location to show local weather.</string>
+	<string>air uses your location to show local weather</string>
 	<key>ATSApplicationFontsPath</key>
 	<string>.</string>
 </dict>

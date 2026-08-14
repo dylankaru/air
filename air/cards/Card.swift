@@ -18,7 +18,7 @@ struct Card<Content: View>: View {
 
     var body: some View {
         content
-            .padding(5)
+            .padding(4)
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
             .background(
                 RoundedRectangle(cornerRadius: 11)

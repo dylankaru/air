@@ -9,7 +9,7 @@ import SwiftUI
 import AppKit
 
 struct GreetingCard: View {
-    @State private var userName: String = "Orange man"
+    @AppStorage("username") private var userName: String = "Friend"
     @State private var greetingText: String = ""
     @State private var isLoading: Bool = true
     @State private var dynamicSubtitle: String = ""
@@ -20,7 +20,7 @@ struct GreetingCard: View {
         formatter.timeZone = .current
         return formatter.string(from: Date())
     }
-    
+
     let morningList  = ["Ready to make today count?", "What's your big plan chief?", "What a day to be alive...", "Go get 'em tiger!"]
     let arvoList     = ["Hope your day is going well", "We in high gear yet?", "Look at you, what a productivity diva!", "Get back to work bro."]
     let eveningList  = ["Time to wind down.", "You rocked today!", "It's getting dark.", "Wrap it up, sleep's important too you know..."]
@@ -28,32 +28,32 @@ struct GreetingCard: View {
 
     var body: some View {
         Card(backgroundColor: .clear) {
-            if isLoading {
-                ProgressView()
-                    .padding()
-            } else if !greetingText.isEmpty {
-                HStack(alignment: .center, spacing: 0) {
+            GeometryReader { geo in
+                if isLoading {
+                    ProgressView()
+                } else if !greetingText.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greetingText)
-                            .font(.custom("Clash Display Variable", size: 30))
-                            .fontWeight(.bold)
-                            .foregroundColor(Color.middark)
-                            .multilineTextAlignment(.leading)
-                         
+                            .font(.custom("ClashDisplayVariable-Bold", size: 55))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.2)
+                            .allowsTightening(true)
+                            .foregroundColor(.middark)
+                        
                         Text(dynamicSubtitle)
-                            .font(.system(size: 14, design: .rounded,))
+                            .font(.system(size: 14, design: .rounded))
                             .fontWeight(.medium)
                             .foregroundColor(Color.middark)
+                            .lineLimit(1)
                     }
-                    Spacer()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.leading, 16)
+                    .frame(maxHeight: .infinity, alignment: .center)
+                } else {
+                    Text("No greeting available")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-                .frame(maxHeight: .infinity, alignment: .center)
-                .padding(.horizontal, 28)
-            } else {
-                Text("No greeting available")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                    .padding()
             }
         }
         .task {
@@ -64,7 +64,7 @@ struct GreetingCard: View {
     private func loadGreeting() async {
         isLoading = true
         defer { isLoading = false }
-        
+
         let hour = Calendar.current.component(.hour, from: Date())
         switch hour {
         case 5..<12: dynamicSubtitle = morningList.randomElement() ?? "Good morning!"

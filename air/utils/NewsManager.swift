@@ -14,9 +14,6 @@ private struct CachedNewsPayload: Codable {
 final class NewsCacheManager {
     static let shared = NewsCacheManager()
 
-    // Bumped from "cachedNewsPayload" — any payload cached before the
-    // image-dedup fix is now automatically ignored rather than served
-    // stale for up to 4 hours.
     private let storageKey = "cachedNewsPayload_v2"
     private let cacheDuration: TimeInterval = 4 * 60 * 60 // 4 hours
 

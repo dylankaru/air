@@ -24,20 +24,46 @@ extension Color {
     static let test = Color(hex: 0xD4E0D2)
 }
 
-struct ColumnSpanKey: LayoutValueKey {
-    static let defaultValue: Int = 1
+extension View {
+    func edgePadding(colStart: Int, colEnd: Int, maxColumns: Int = 20, paddingAmount: CGFloat = 16) -> some View {
+        self
+            .padding(.leading, colStart == 0 ? paddingAmount : 0)
+            .padding(.trailing, colEnd == maxColumns ? paddingAmount : 0)
+    }
 }
 
-struct RowSpanKey: LayoutValueKey {
+extension View {
+    @ViewBuilder
+    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
+        if condition {
+            transform(self)
+        } else {
+            self
+        }
+    }
+}
+
+struct ColStartKey: LayoutValueKey {
+    static let defaultValue: Int = 0
+}
+struct ColEndKey: LayoutValueKey {
+    static let defaultValue: Int = 1
+}
+struct RowStartKey: LayoutValueKey {
+    static let defaultValue: Int = 0
+}
+struct RowEndKey: LayoutValueKey {
     static let defaultValue: Int = 1
 }
 
 extension View {
-    func gridColumnSpan(_ span: Int) -> some View {
-        layoutValue(key: ColumnSpanKey.self, value: span)
+    func gridColumn(_ start: Int, _ end: Int) -> some View {
+        layoutValue(key: ColStartKey.self, value: start)
+            .layoutValue(key: ColEndKey.self, value: end)
     }
-    func gridRowSpan(_ span: Int) -> some View {
-        layoutValue(key: RowSpanKey.self, value: span)
+    func gridRow(_ start: Int, _ end: Int) -> some View {
+        layoutValue(key: RowStartKey.self, value: start)
+            .layoutValue(key: RowEndKey.self, value: end)
     }
 }
 
@@ -56,113 +82,127 @@ struct Masonry: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         let totalSpacingX = spacing * CGFloat(columns - 1)
         let totalSpacingY = spacing * CGFloat(rows - 1)
-        
+
         let cellWidth = max(0, (bounds.width - totalSpacingX) / CGFloat(columns))
         let cellHeight = max(0, (bounds.height - totalSpacingY) / CGFloat(rows))
 
-        var occupied = Array(repeating: Array(repeating: false, count: rows), count: columns)
-
         for subview in subviews {
-            let colSpan = min(columns, max(1, subview[ColumnSpanKey.self]))
-            let rowSpan = min(rows, max(1, subview[RowSpanKey.self]))
+            let colStart = min(max(0, subview[ColStartKey.self]), columns)
+            let colEnd = min(max(colStart + 1, subview[ColEndKey.self]), columns)
+            let rowStart = min(max(0, subview[RowStartKey.self]), rows)
+            let rowEnd = min(max(rowStart + 1, subview[RowEndKey.self]), rows)
 
-            if let (startCol, startRow) = findSlot(colSpan: colSpan, rowSpan: rowSpan, occupied: occupied) {
-                for c in startCol..<(startCol + colSpan) {
-                    for r in startRow..<(startRow + rowSpan) {
-                        occupied[c][r] = true
-                    }
-                }
+            let colSpan = colEnd - colStart
+            let rowSpan = rowEnd - rowStart
 
-                let x = bounds.minX + CGFloat(startCol) * (cellWidth + spacing)
-                let y = bounds.minY + CGFloat(startRow) * (cellHeight + spacing)
-                let width = CGFloat(colSpan) * cellWidth + CGFloat(colSpan - 1) * spacing
-                let height = CGFloat(rowSpan) * cellHeight + CGFloat(rowSpan - 1) * spacing
+            let x = bounds.minX + CGFloat(colStart) * (cellWidth + spacing)
+            let y = bounds.minY + CGFloat(rowStart) * (cellHeight + spacing)
+            let width = CGFloat(colSpan) * cellWidth + CGFloat(colSpan - 1) * spacing
+            let height = CGFloat(rowSpan) * cellHeight + CGFloat(rowSpan - 1) * spacing
 
-                subview.place(
-                    at: CGPoint(x: x, y: y),
-                    proposal: ProposedViewSize(width: width, height: height)
-                )
-            }
+            subview.place(
+                at: CGPoint(x: x, y: y),
+                proposal: ProposedViewSize(width: width, height: height)
+            )
         }
-    }
-
-    private func findSlot(colSpan: Int, rowSpan: Int, occupied: [[Bool]]) -> (Int, Int)? {
-        guard rows >= rowSpan, columns >= colSpan else { return nil }
-
-        for r in 0...(rows - rowSpan) {
-            for c in 0...(columns - colSpan) {
-                var fits = true
-                for dc in 0..<colSpan {
-                    for dr in 0..<rowSpan {
-                        if occupied[c + dc][r + dr] {
-                            fits = false
-                            break
-                        }
-                    }
-                    if !fits { break }
-                }
-                if fits { return (c, r) }
-            }
-        }
-        return nil
     }
 }
 
 struct CardItem: Identifiable {
     let id = UUID()
-    let colSpan: Int
-    let rowSpan: Int
+    let colStart: Int
+    let colEnd: Int
+    let rowStart: Int
+    let rowEnd: Int
+    let ignoreEdgePadding: Bool
+    let ignoreStandardArrangements: Bool
     let content: AnyView
     
     init<Content: View>(
-            colSpan: Int,
-            rowSpan: Int,
-            @ViewBuilder content: () -> Content
-        ) {
-            self.colSpan = colSpan
-            self.rowSpan = rowSpan
-            self.content = AnyView(content())
-        }
+        colStart: Int,
+        colEnd: Int,
+        rowStart: Int,
+        rowEnd: Int,
+        ignoreEdgePadding: Bool = false,
+        ignoreStandardArrangements: Bool = false,
+        @ViewBuilder content: () -> Content
+    ) {
+        self.colStart = colStart
+        self.colEnd = colEnd
+        self.rowStart = rowStart
+        self.rowEnd = rowEnd
+        self.ignoreEdgePadding = ignoreEdgePadding
+        self.ignoreStandardArrangements = ignoreStandardArrangements
+        self.content = AnyView(content())
+    }
 }
 
 struct ContentView: View {
+    @State private var isHovered = false
+    
+    @Environment(\.openWindow) private var openWindow
+    
     let isVisible: Bool = true
     
-    let columns = 12
-    let rows = 12
-
+    let columns = 20
+    let rows = 14
+    
     let items: [CardItem] = [
-        CardItem(colSpan: 4, rowSpan: 2) {
+        CardItem(colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2, ignoreEdgePadding: true, ignoreStandardArrangements: true) {
             GreetingCard()
         },
-        CardItem(colSpan: 2, rowSpan: 2) {
+        CardItem(colStart: 6, colEnd: 13, rowStart: 0, rowEnd: 2) {
             WeatherCard()
+        },
+        CardItem(colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4) {
+            ToDoCard()
+        },
+        CardItem(colStart: 6, colEnd: 13, rowStart: 2, rowEnd: 7) {
+            NewsCard()
+        },
+        CardItem(colStart: 13, colEnd: 20, rowStart: 4, rowEnd: 7) {
+            StreakCard()
+        },
+        CardItem(colStart: 0, colEnd: 6, rowStart: 2, rowEnd: 7) {
+            AudioPlayerCard()
         }
     ]
     
-    // TODO: fix the issue where the card is setting its own dimensions
-
     var body: some View {
-            NavigationStack {
-                ZStack {
-                    Color.beige.ignoresSafeArea()
-
-                    Masonry(columns: columns, rows: rows, spacing: 6) {
-                        ForEach(items) { item in
-                            item.content
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .gridColumnSpan(item.colSpan)
-                                .gridRowSpan(item.rowSpan)
-                        }
+        NavigationStack {
+            ZStack(alignment: .bottomTrailing) {
+                Color.beige.ignoresSafeArea()
+                
+                Masonry(columns: columns, rows: rows, spacing: 10) {
+                    ForEach(items) { item in
+                        item.content
+                            .if(!item.ignoreEdgePadding) { view in
+                                view.edgePadding(colStart: item.colStart, colEnd: item.colEnd, maxColumns: columns)
+                            }
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .gridColumn(item.colStart, item.colEnd)
+                            .gridRow(item.rowStart, item.rowEnd)
                     }
-//                    .padding(10)
-//                    .background(isVisible ? Color.orange.opacity(0.2) : Color.clear)
-//                    .padding(10)
                 }
+                .padding(10)
+                
+                SettingsButton()
+                    .padding(10)
             }
         }
-}
-
-#Preview {
-    ContentView()
+    }
+    
+    private func SettingsButton() -> some View {
+        Button {
+            openWindow(id: "settings-window")
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.title)
+                .foregroundStyle(Color.middark)
+                .padding(6)
+                .background(Color.widget)
+                .clipShape(Circle())
+        }
+        .buttonStyle(.airButton)
+    }
 }
