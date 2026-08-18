@@ -43,20 +43,20 @@ enum IncrementMode: String, CaseIterable, Identifiable {
 struct StreakCard: View {
     @Environment(\.scenePhase) private var scenePhase
 
-    @AppStorage("streakSetting") private var currentSettingRaw: String = StreakSetting.countUpVis.rawValue
-    @AppStorage("timeInterval") private var timeInterval: StreakTimeInterval = .daily
-    @AppStorage("incrementMode") private var incrementMode: IncrementMode = .manual
+    @AppStorage("streak_mode") private var currentSettingRaw: String = StreakSetting.countUpVis.rawValue
+    @AppStorage("streak_increase_interval") private var timeInterval: StreakTimeInterval = .daily
+    @AppStorage("streak_increment_mode") private var incrementMode: IncrementMode = .manual
 
-    @AppStorage("completedUnits") private var streakCount: Int = 42
-    @AppStorage("targetUnit") private var totalDays: Int = 154
+    @AppStorage("streak_completed_units") private var streakCount: Int = 0
+    @AppStorage("streak_goal_unit") private var totalDays: Int = 154
 
-    @AppStorage("streakCardPrimaryColor") private var primaryHex: String = "#3498DB"
-    @AppStorage("streakCardSecondaryColor") private var secondaryHex: String = "#2ECC71"
+    @AppStorage("streak_primary_colour") private var primaryHex: String = "#3498DB"
+    @AppStorage("streak_secondary_colour") private var secondaryHex: String = "#2ECC71"
 
-    @AppStorage("useCustomGoalColor") private var useCustomGoalColor: Bool = false
-    @AppStorage("goalUnitColor") private var goalUnitHex: String = "#E74C3C"
+    @AppStorage("streak_does_goal_have_colour") private var useCustomGoalColor: Bool = false
+    @AppStorage("streak_goal_color") private var goalUnitHex: String = "#E74C3C"
 
-    @AppStorage("lastProgressionDate") private var lastProgressionTimestamp: Double = 0
+    @AppStorage("streak_last_progression") private var lastProgressionTimestamp: Double = 0
 
     private let maxVisibleUnits: Int = 154
 

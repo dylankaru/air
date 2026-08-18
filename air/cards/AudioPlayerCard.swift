@@ -24,7 +24,8 @@ enum AudioSourceSetting: String, CaseIterable, Identifiable {
 }
 
 struct AudioPlayerCard: View {
-    @AppStorage("audioSource") private var audioSourceRaw: String = AudioSourceSetting.spotify.rawValue
+    @AppStorage("audio_player_source") private var audioSourceRaw: String = AudioSourceSetting.spotify.rawValue
+    @AppStorage("audio_show_artwork") private var showArtwork: Bool = true
 
     @StateObject private var controller: AudioSourceController
 
@@ -38,7 +39,7 @@ struct AudioPlayerCard: View {
     }
 
     init() {
-        let raw = UserDefaults.standard.string(forKey: "audioSource") ?? AudioSourceSetting.spotify.rawValue
+        let raw = UserDefaults.standard.string(forKey: "audio_player_source") ?? AudioSourceSetting.spotify.rawValue
         let kind = (AudioSourceSetting(rawValue: raw) ?? .spotify).kind
         _controller = StateObject(wrappedValue: AudioSourceController(source: kind))
     }
@@ -101,9 +102,12 @@ struct AudioPlayerCard: View {
         return artist
     }
 
-
     private var trackInfo: some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 12) {
+            if showArtwork {
+                artworkView
+            }
+            
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayTitle)
                     .font(.system(size: audioSource == .systemNowPlaying ? 16 : 13, weight: audioSource == .systemNowPlaying ? .bold : .semibold))
@@ -117,6 +121,27 @@ struct AudioPlayerCard: View {
             }
             Spacer(minLength: 0)
         }
+    }
+
+    private var artworkView: some View {
+        Group {
+            if let artwork = controller.track.artwork {
+                Image(nsImage: artwork)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+            } else {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.middark.opacity(0.1))
+                    Image(systemName: "music.note")
+                        .font(.system(size: 16))
+                        .foregroundColor(.middark.opacity(0.5))
+                }
+            }
+        }
+        .frame(width: audioSource == .systemNowPlaying ? 52 : 44, height: audioSource == .systemNowPlaying ? 52 : 44)
+        .cornerRadius(8)
+        .clipped()
     }
 
     private var progressBar: some View {

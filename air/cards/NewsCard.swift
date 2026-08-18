@@ -2,6 +2,9 @@ import SwiftUI
 import AppKit
 
 struct NewsCard: View {
+    @AppStorage("news_user_prefs") private var newsPreference: String = "news today"
+    @AppStorage("news_too_distracting") private var turnOffNews: Bool = false
+    
     @State private var isTestingNews = false
 
     @State private var articles: [NewsArticle] = []
@@ -12,40 +15,52 @@ struct NewsCard: View {
     @State private var isReady = false
 
     var body: some View {
-        Card {
-            ZStack {
-                if let errorMessage {
-                    Text(errorMessage)
-                        .foregroundColor(.middark)
-                        .font(.caption)
-                } else if !isReady {
-                    Text("Loading news…")
-                        .foregroundColor(.middark)
-                } else {
-                    NewsCardContent(
-                        article: articles[currentIndex],
-                        image: preloadedImages[articles[currentIndex].id]
-                    )
-                    .id(articles[currentIndex].id)
-                    .transition(
-                        .asymmetric(
-                            insertion: .move(edge: .top).combined(with: .opacity),
-                            removal: .move(edge: .bottom).combined(with: .opacity)
-                        )
-                    )
+            Card {
+                Group {
+                    if !turnOffNews {
+                        ZStack {
+                            if let errorMessage {
+                                Text(errorMessage)
+                                    .foregroundColor(.middark)
+                                    .font(.caption)
+                            } else if !isReady {
+                                Text("Loading news…")
+                                    .foregroundColor(.middark)
+                            } else {
+                                NewsCardContent(
+                                    article: articles[currentIndex],
+                                    image: preloadedImages[articles[currentIndex].id]
+                                )
+                                .id(articles[currentIndex].id)
+                                .transition(
+                                    .asymmetric(
+                                        insertion: .move(edge: .top).combined(with: .opacity),
+                                        removal: .move(edge: .bottom).combined(with: .opacity)
+                                    )
+                                )
+                            }
+                        }
+                        .animation(.easeInOut(duration: 0.5), value: currentIndex)
+                        .clipped()
+                        .padding(10)
+                    } else {
+                        VStack {
+                            Spacer()
+                            Text("You've turned off news... I see how it is")
+                                .foregroundColor(.middark)
+                                .frame(maxWidth: .infinity, alignment: .center)
+                            Spacer()
+                        }
+                    }
+                }
+                .task {
+                    await loadNews()
+                }
+                .onDisappear {
+                    cycleTask?.cancel()
                 }
             }
-            .animation(.easeInOut(duration: 0.5), value: currentIndex)
-            .clipped()
-            .padding(10)
         }
-        .task {
-            await loadNews()
-        }
-        .onDisappear {
-            cycleTask?.cancel()
-        }
-    }
 
     private func loadNews() async {
         do {
@@ -54,7 +69,7 @@ struct NewsCard: View {
             if !isTestingNews, let cached = NewsCacheManager.shared.loadIfFresh() {
                 fetchedArticles = cached
             } else {
-                let response = try await fetchNews()
+                let response = try await fetchNews(query: newsPreference)
                 fetchedArticles = response.articles
                 NewsCacheManager.shared.save(fetchedArticles)
             }

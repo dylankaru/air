@@ -15,7 +15,7 @@ struct NewsArticle: Codable, Identifiable {
     let language: String?
     let sourceCountry: String?
     let seenDate: String?
-    let imageURL: String?   // ← new
+    let imageURL: String?
 
     enum CodingKeys: String, CodingKey {
         case title
@@ -24,7 +24,7 @@ struct NewsArticle: Codable, Identifiable {
         case language
         case sourceCountry = "source_country"
         case seenDate = "seen_date"
-        case imageURL = "image_url"   // ← new
+        case imageURL = "image_url"
     }
 }
 

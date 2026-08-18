@@ -49,7 +49,7 @@ struct WeatherCard: View {
     
     @State private var locationProvider = WeatherLocationProvider()
     
-    @AppStorage("selectedWeatherMetrics") private var selectedMetrics: [WeatherMetric] = [
+    @AppStorage("weather_selected_metrics") private var selectedMetrics: [WeatherMetric] = [
         .windSpeed,
         .humidity,
         .uvIndex,

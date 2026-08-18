@@ -9,7 +9,7 @@ import SwiftUI
 import AppKit
 
 struct GreetingCard: View {
-    @AppStorage("username") private var userName: String = "Friend"
+    @AppStorage("air_username") private var userName: String = "Friend"
     @State private var greetingText: String = ""
     @State private var isLoading: Bool = true
     @State private var dynamicSubtitle: String = ""

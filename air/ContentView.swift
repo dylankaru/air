@@ -7,6 +7,94 @@
 
 import SwiftUI
 
+//
+
+enum SettingsTab: String, CaseIterable, Identifiable {
+    case general = "General"
+    case news = "News"
+    case weather = "Weather"
+    case streak = "Streak"
+    case audio = "Audio"
+    case timer = "Timer"
+
+    var id: String { rawValue }
+
+    var icon: String {
+        switch self {
+        case .general: return "gearshape"
+        case .news: return "newspaper.fill"
+        case .weather: return "cloud.fog"
+        case .streak: return "flame.fill"
+        case .audio: return "waveform"
+        case .timer: return "clock.badge.fill"
+        }
+    }
+}
+
+
+let appCards: [CardItem] = [
+    CardItem(
+        colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2,
+        ignoreEdgePadding: true, ignoreStandardArrangements: true) {
+        GreetingCard()
+    },
+    CardItem(title: "Weather", icon: "cloud.fog.fill",
+             colStart: 6, colEnd: 13, rowStart: 0, rowEnd: 2,
+             settingsView: { WeatherSettingsView() }
+    ) {
+        WeatherCard()
+    },
+    CardItem(
+//        title: "", icon: "",
+        colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4,
+//        settingsView: {}
+    ) {
+        ToDoCard()
+    },
+    CardItem(
+        title: "News", icon: "newspaper.fill",
+        colStart: 6, colEnd: 13, rowStart: 2, rowEnd: 7,
+        settingsView: { NewsSettingsView() }
+    ) {
+        NewsCard()
+    },
+    CardItem(
+        title: "Streak", icon: "flame.fill",
+        colStart: 13, colEnd: 20, rowStart: 4, rowEnd: 7,
+        settingsView: { StreakSettingsView() }
+    ) {
+        StreakCard()
+    },
+    CardItem(
+        title: "Audio Player", icon: "person.spatialaudio.fill",
+        colStart: 0, colEnd: 6, rowStart: 2, rowEnd: 7,
+        settingsView: { AudioPlayerSettingsView() }
+    ) {
+        AudioPlayerCard()
+    },
+    CardItem(
+        title: "Timer", icon: "clock.badge.fill",
+        colStart: 0, colEnd: 6, rowStart: 7, rowEnd: 11,
+        settingsView: { TimerSettingsView() }
+    ) {
+        TimerCard()
+    },
+    CardItem(
+        colStart: 6, colEnd: 10, rowStart: 7, rowEnd: 9,
+    ) {
+        CalendarCard()
+    },
+    CardItem(
+        title: "Speed Test", icon: "hare.fill",
+        colStart: 10, colEnd: 13, rowStart: 7, rowEnd: 9,
+        settingsView: { SpeedTestSettingsView() }
+    ) {
+        SpeedTestCard()
+    }
+]
+
+//
+
 extension Color {
     init(hex: UInt, opacity: Double = 1.0) {
         self.init(
@@ -110,29 +198,38 @@ struct Masonry: Layout {
 
 struct CardItem: Identifiable {
     let id = UUID()
+    let title: String?
+    let icon: String?
     let colStart: Int
     let colEnd: Int
     let rowStart: Int
     let rowEnd: Int
     let ignoreEdgePadding: Bool
     let ignoreStandardArrangements: Bool
+    let settingsView: AnyView?
     let content: AnyView
     
-    init<Content: View>(
+    init<Content: View, SettingsContent: View>(
+        title: String? = nil,
+        icon: String? = nil,
         colStart: Int,
         colEnd: Int,
         rowStart: Int,
         rowEnd: Int,
         ignoreEdgePadding: Bool = false,
         ignoreStandardArrangements: Bool = false,
+        @ViewBuilder settingsView: () -> SettingsContent = { EmptyView() },
         @ViewBuilder content: () -> Content
     ) {
+        self.title = title
+        self.icon = icon
         self.colStart = colStart
         self.colEnd = colEnd
         self.rowStart = rowStart
         self.rowEnd = rowEnd
         self.ignoreEdgePadding = ignoreEdgePadding
         self.ignoreStandardArrangements = ignoreStandardArrangements
+        self.settingsView = AnyView(settingsView())
         self.content = AnyView(content())
     }
 }
@@ -147,41 +244,20 @@ struct ContentView: View {
     let columns = 20
     let rows = 14
     
-    let items: [CardItem] = [
-        CardItem(colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2, ignoreEdgePadding: true, ignoreStandardArrangements: true) {
-            GreetingCard()
-        },
-        CardItem(colStart: 6, colEnd: 13, rowStart: 0, rowEnd: 2) {
-            WeatherCard()
-        },
-        CardItem(colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4) {
-            ToDoCard()
-        },
-        CardItem(colStart: 6, colEnd: 13, rowStart: 2, rowEnd: 7) {
-            NewsCard()
-        },
-        CardItem(colStart: 13, colEnd: 20, rowStart: 4, rowEnd: 7) {
-            StreakCard()
-        },
-        CardItem(colStart: 0, colEnd: 6, rowStart: 2, rowEnd: 7) {
-            AudioPlayerCard()
-        }
-    ]
-    
     var body: some View {
         NavigationStack {
             ZStack(alignment: .bottomTrailing) {
                 Color.beige.ignoresSafeArea()
                 
                 Masonry(columns: columns, rows: rows, spacing: 10) {
-                    ForEach(items) { item in
-                        item.content
-                            .if(!item.ignoreEdgePadding) { view in
-                                view.edgePadding(colStart: item.colStart, colEnd: item.colEnd, maxColumns: columns)
+                    ForEach(appCards) { card in
+                        card.content
+                            .if(!card.ignoreEdgePadding) { view in
+                                view.edgePadding(colStart: card.colStart, colEnd: card.colEnd, maxColumns: columns)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .gridColumn(item.colStart, item.colEnd)
-                            .gridRow(item.rowStart, item.rowEnd)
+                            .gridColumn(card.colStart, card.colEnd)
+                            .gridRow(card.rowStart, card.rowEnd)
                     }
                 }
                 .padding(10)

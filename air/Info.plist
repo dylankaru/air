@@ -2,6 +2,8 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSCalendarsUsageDescription</key>
+	<string>air uses Calendar read privileges to show you your upcoming events</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>air uses AppleEvents to communicate with other apps, such as Spotify and Apple Music</string>
 	<key>NSLocationWhenInUseUsageDescription</key>

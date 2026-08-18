@@ -70,7 +70,7 @@ final class MediaRemoteBridge {
             let pipe = Pipe()
 
             task.executableURL = URL(fileURLWithPath: executablePath)
-            task.arguments = ["get", "title", "artist", "playbackRate", "elapsedTime", "duration"]
+            task.arguments = ["get", "title", "artist", "playbackRate", "elapsedTime", "duration", "artworkData"]
             task.standardOutput = pipe
 
             do {
@@ -91,6 +91,15 @@ final class MediaRemoteBridge {
                         let title = (rawTitle == "null" || rawTitle.isEmpty) ? "" : rawTitle
                         let artist = (rawArtist == "null" || rawArtist.isEmpty) ? "" : rawArtist
 
+                        var artworkImage: NSImage? = nil
+                        if lines.count >= 6 {
+                            let rawArtwork = lines[5].trimmingCharacters(in: .whitespacesAndNewlines)
+                            if rawArtwork != "null" && !rawArtwork.isEmpty,
+                               let artworkData = Data(base64Encoded: rawArtwork) {
+                                artworkImage = NSImage(data: artworkData)
+                            }
+                        }
+
                         if !title.isEmpty {
                             let track = TrackInfo(
                                 title: title,
@@ -98,7 +107,8 @@ final class MediaRemoteBridge {
                                 isPlaying: rate > 0,
                                 position: elapsed,
                                 duration: duration,
-                                volume: 50
+                                volume: 50,
+                                artwork: artworkImage
                             )
                             DispatchQueue.main.async { completion(track) }
                             return
@@ -149,6 +159,17 @@ struct TrackInfo: Equatable {
     var position: Double = 0
     var duration: Double = 0
     var volume: Double = 50
+    var artwork: NSImage? = nil
+
+    static func == (lhs: TrackInfo, rhs: TrackInfo) -> Bool {
+        return lhs.title == rhs.title &&
+               lhs.artist == rhs.artist &&
+               lhs.isPlaying == rhs.isPlaying &&
+               lhs.position == rhs.position &&
+               lhs.duration == rhs.duration &&
+               lhs.volume == rhs.volume &&
+               lhs.artwork == rhs.artwork
+    }
 }
 
 final class AudioSourceController: ObservableObject {
@@ -156,6 +177,11 @@ final class AudioSourceController: ObservableObject {
 
     private var pollTimer: Timer?
     private var source: AudioSourceKind
+    
+    private var cachedTrackKey: String = ""
+    private var cachedArtwork: NSImage? = nil
+
+    private let scriptQueue = DispatchQueue(label: "com.air.applescriptQueue", qos: .utility)
 
     init(source: AudioSourceKind) {
         self.source = source
@@ -164,6 +190,8 @@ final class AudioSourceController: ObservableObject {
 
     func updateSource(_ newSource: AudioSourceKind) {
         source = newSource
+        cachedTrackKey = ""
+        cachedArtwork = nil
         refresh()
     }
 
@@ -186,8 +214,7 @@ final class AudioSourceController: ObservableObject {
             guard let bundleID = source.bundleIdentifier else { return }
             launchInBackgroundIfNeeded(bundleID: bundleID) { [weak self] in
                 guard let self else { return }
-                self.runAppleScript(self.script(for: .play))
-                self.refresh()
+                self.runAppleScriptOffMainThread(self.script(for: .play))
             }
         case .systemNowPlaying:
             track.isPlaying = true
@@ -294,7 +321,7 @@ final class AudioSourceController: ObservableObject {
     }
 
     private func executeScriptOffMainThread(_ sourceStr: String) {
-        DispatchQueue.global(qos: .utility).async { [weak self] in
+        scriptQueue.async { [weak self] in
             self?.runAppleScript(sourceStr)
             DispatchQueue.main.async {
                 self?.refresh()
@@ -306,11 +333,35 @@ final class AudioSourceController: ObservableObject {
         switch source {
         case .spotify, .appleMusic:
             guard let script = script(for: .state) else { return }
-            DispatchQueue.global(qos: .utility).async { [weak self] in
+            scriptQueue.async { [weak self] in
                 guard let self else { return }
                 guard let result = self.runAppleScript(script) else { return }
-                let parsed = self.parseState(result.stringValue)
-                DispatchQueue.main.async { self.track = parsed }
+                let (parsedTrack, artworkUrl) = self.parseState(result.stringValue)
+                
+                let trackKey = "\(parsedTrack.title)|\(parsedTrack.artist)"
+                
+                if trackKey != self.cachedTrackKey {
+                    self.cachedTrackKey = trackKey
+                    
+                    if parsedTrack.title == "Nothing Playing" || parsedTrack.title.isEmpty {
+                        self.cachedArtwork = nil
+                    } else if self.source == .spotify, let urlString = artworkUrl, let url = URL(string: urlString) {
+                        if let data = try? Data(contentsOf: url) {
+                            self.cachedArtwork = NSImage(data: data)
+                        } else {
+                            self.cachedArtwork = nil
+                        }
+                    } else if self.source == .appleMusic {
+                        self.cachedArtwork = self.fetchAppleMusicArtwork()
+                    } else {
+                        self.cachedArtwork = nil
+                    }
+                }
+                
+                var finalTrack = parsedTrack
+                finalTrack.artwork = self.cachedArtwork
+                
+                DispatchQueue.main.async { self.track = finalTrack }
             }
         case .systemNowPlaying:
             MediaRemoteBridge.shared.fetchCLINowPlaying { [weak self] cliTrack in
@@ -322,12 +373,12 @@ final class AudioSourceController: ObservableObject {
         }
     }
 
-    private func parseState(_ raw: String?) -> TrackInfo {
-        guard let raw else { return TrackInfo() }
+    private func parseState(_ raw: String?) -> (TrackInfo, String?) {
+        guard let raw else { return (TrackInfo(), nil) }
         let parts = raw.components(separatedBy: "|")
-        guard parts.count == 6 else { return TrackInfo() }
+        guard parts.count >= 6 else { return (TrackInfo(), nil) }
 
-        return TrackInfo(
+        let info = TrackInfo(
             title: parts[1].isEmpty ? "Nothing Playing" : parts[1],
             artist: parts[2],
             isPlaying: parts[0] == "playing",
@@ -335,6 +386,28 @@ final class AudioSourceController: ObservableObject {
             duration: Double(parts[4]) ?? 0,
             volume: Double(parts[5]) ?? 50
         )
+        
+        let artworkUrl = parts.count >= 7 ? parts[6] : nil
+        return (info, artworkUrl)
+    }
+
+    private func fetchAppleMusicArtwork() -> NSImage? {
+        let scriptSource = """
+        tell application "Music"
+            try
+                if exists (artwork 1 of current track) then
+                    return raw data of artwork 1 of current track
+                end if
+            end try
+        end tell
+        """
+        guard let script = NSAppleScript(source: scriptSource) else { return nil }
+        var error: NSDictionary?
+        let result = script.executeAndReturnError(&error)
+
+        let data = result.data
+        guard !data.isEmpty else { return nil }
+        return NSImage(data: data)
     }
 
     @discardableResult
@@ -387,16 +460,18 @@ final class AudioSourceController: ObservableObject {
                         set trackArtist to ""
                         set pos to 0
                         set dur to 0
+                        set artUrl to ""
                         try
                             set trackName to name of current track
                             set trackArtist to artist of current track
                             set pos to player position
                             set dur to (duration of current track) / 1000
+                            set artUrl to artwork url of current track
                         end try
                         set vol to sound volume
-                        return playerState & "|" & trackName & "|" & trackArtist & "|" & pos & "|" & dur & "|" & vol
+                        return playerState & "|" & trackName & "|" & trackArtist & "|" & pos & "|" & dur & "|" & vol & "|" & artUrl
                     else
-                        return "stopped||||0|0|50"
+                        return "stopped||||0|0|50|"
                     end if
                 end tell
                 """
