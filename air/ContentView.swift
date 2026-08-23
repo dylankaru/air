@@ -45,9 +45,7 @@ let appCards: [CardItem] = [
         WeatherCard()
     },
     CardItem(
-//        title: "", icon: "",
         colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4,
-//        settingsView: {}
     ) {
         ToDoCard()
     },
@@ -80,7 +78,7 @@ let appCards: [CardItem] = [
         TimerCard()
     },
     CardItem(
-        colStart: 6, colEnd: 10, rowStart: 7, rowEnd: 9,
+        colStart: 6, colEnd: 13, rowStart: 9, rowEnd: 14,
     ) {
         CalendarCard()
     },
@@ -90,6 +88,20 @@ let appCards: [CardItem] = [
         settingsView: { SpeedTestSettingsView() }
     ) {
         SpeedTestCard()
+    },
+    CardItem(
+        title: "Clipboard", icon: "sparkle.text.clipboard.fill",
+        colStart: 0, colEnd: 6, rowStart: 11, rowEnd: 14,
+        settingsView: { ClipboardSettingsView() }
+    ) {
+        ClipboardCard()
+    },
+    CardItem(
+        title: "Bookmarks", icon: "bookmark.fill",
+        colStart: 6, colEnd: 10, rowStart: 7, rowEnd: 9,
+        settingsView: { BookmarksSettingsView() }
+    ) {
+        BookmarksCard()
     }
 ]
 
@@ -261,6 +273,7 @@ struct ContentView: View {
                     }
                 }
                 .padding(10)
+                .padding(.bottom, 16)
                 
                 SettingsButton()
                     .padding(10)

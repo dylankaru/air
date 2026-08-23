@@ -2,6 +2,8 @@
 //  NewsCacheManager.swift
 //  air
 //
+//  Created by Dylan Karunanayake on a day (i forgot)
+//
 
 import Foundation
 
@@ -14,14 +16,13 @@ private struct CachedNewsPayload: Codable {
 final class NewsCacheManager {
     static let shared = NewsCacheManager()
 
-    private let storageKey = "cachedNewsPayload_v2"
+    private let filename = "news_cache.json"
     private let cacheDuration: TimeInterval = 4 * 60 * 60 // 4 hours
 
     private init() {}
 
     func loadIfFresh() -> [NewsArticle]? {
-        guard let data = UserDefaults.standard.data(forKey: storageKey),
-              let payload = try? JSONDecoder().decode(CachedNewsPayload.self, from: data) else {
+        guard let payload = JSONManager.load(CachedNewsPayload.self, from: filename, location: .cache) else {
             return nil
         }
 
@@ -33,11 +34,10 @@ final class NewsCacheManager {
 
     func save(_ articles: [NewsArticle]) {
         let payload = CachedNewsPayload(articles: articles, fetchedAt: Date())
-        guard let data = try? JSONEncoder().encode(payload) else { return }
-        UserDefaults.standard.set(data, forKey: storageKey)
+        try? JSONManager.save(payload, to: filename, location: .cache)
     }
 
     func clear() {
-        UserDefaults.standard.removeObject(forKey: storageKey)
+        try? JSONManager.delete(filename, location: .cache)
     }
 }

@@ -1,5 +1,5 @@
 //
-//  APIDownloadRequest.swift
+//  APISpeedRequest.swift
 //  air
 //
 //  Created by Dylan Karunanayake on 18/8/2026.
@@ -12,6 +12,7 @@ import Foundation
 @Observable
 final class SpeedTestViewModel {
     var downloadSpeed: Double?
+    var uploadSpeed: Double?
     var isLoading = false
     var errorMessage: String?
 
@@ -21,7 +22,8 @@ final class SpeedTestViewModel {
         downloadSpeed = nil
         
         do {
-            downloadSpeed = try await runSpeedTest()
+            downloadSpeed = try await runDownloadSpeedTest()
+            uploadSpeed = try await runUploadSpeedTest()
         } catch {
             errorMessage = "Test failed: \(error.localizedDescription)"
         }
@@ -29,7 +31,7 @@ final class SpeedTestViewModel {
         isLoading = false
     }
 
-    private func runSpeedTest() async throws -> Double {
+    private func runDownloadSpeedTest() async throws -> Double {
         guard let url = URL(string: "https://airapi.destinyorg.com.au/download?size_mb=40") else {
             throw URLError(.badURL)
         }
@@ -62,5 +64,39 @@ final class SpeedTestViewModel {
         let megabits = Double(data.count) * 8.0 / 1_000_000.0
         
         return megabits / elapsedTime
+    }
+    
+    private func runUploadSpeedTest(sizeMB: Int = 20) async throws -> Double {
+        guard let url = URL(string: "https://airapi.destinyorg.com.au/upload") else {
+            throw URLError(.badURL)
+        }
+        
+        let byteCount = sizeMB * 1024 * 1024
+        let payload = Data(count: byteCount)
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/octet-stream", forHTTPHeaderField: "Content-Type")
+        
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        let (data, response) = try await URLSession.shared.upload(for: request, from: payload)
+        
+        let duration = CFAbsoluteTimeGetCurrent() - startTime
+        
+        if let httpResponse = response as? HTTPURLResponse {
+            print("Upload server responded with status code: \(httpResponse.statusCode)")
+            
+            guard (200...299).contains(httpResponse.statusCode) else {
+                if let serverMessage = String(data: data, encoding: .utf8) {
+                    print("Upload server error message: \(serverMessage)")
+                }
+                throw URLError(URLError.Code(rawValue: httpResponse.statusCode))
+            }
+        }
+        
+        guard duration > 0 else { return 0.0 }
+        let megabitsSent = (Double(byteCount) * 8.0) / 1_000_000.0
+        return (megabitsSent / duration)
     }
 }

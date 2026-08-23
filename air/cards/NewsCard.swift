@@ -170,23 +170,17 @@ private struct NewsCardContent: View {
     let article: NewsArticle
     let image: NSImage?
 
-    private let cardHeight: CGFloat = 210
-    private let imageHeight: CGFloat = 180
-
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        ZStack(alignment: .bottomLeading) {
             if let image {
                 Image(nsImage: image)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: imageHeight)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    .frame(minWidth: 0, maxWidth: .infinity, minHeight: 0, maxHeight: .infinity)
+                    .clipped()
             } else {
-                RoundedRectangle(cornerRadius: 8)
+                RoundedRectangle(cornerRadius: 12)
                     .fill(Color.middark.opacity(0.12))
-                    .frame(maxWidth: .infinity)
-                    .frame(height: imageHeight)
                     .overlay(
                         Image(systemName: "newspaper")
                             .font(.system(size: 24))
@@ -194,21 +188,25 @@ private struct NewsCardContent: View {
                     )
             }
 
-            Text(article.title)
-                .foregroundColor(.middark)
-                .font(.system(size: 12, weight: .medium))
-                .lineLimit(3)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: 0)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(article.title)
+                    .foregroundColor(.white)
+                    .font(.system(size: 13, weight: .semibold))
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+            }
+            .padding(12)
+            .padding(.bottom, 2)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                LinearGradient(
+                    colors: [.clear, .black.opacity(0.95)],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
         }
-        .padding(10)
-        .frame(maxWidth: .infinity, alignment: .topLeading)
-        .frame(height: cardHeight, alignment: .top)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color.widget.opacity(0.6))
-        )
+        .frame(height: 238)
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 }

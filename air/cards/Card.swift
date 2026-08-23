@@ -24,6 +24,6 @@ struct Card<Content: View>: View {
                 RoundedRectangle(cornerRadius: 11)
                     .fill(backgroundColor)
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .clipped()
     }
 }

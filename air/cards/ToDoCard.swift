@@ -16,6 +16,7 @@ struct ToDoItem: Identifiable, Equatable, Codable {
 struct ToDoCard: View {
 
     let title = "Things to do:"
+    private let filename = "todos.json"
 
     @State private var items: [ToDoItem] = []
     @State private var newTask: String = ""
@@ -57,10 +58,11 @@ struct ToDoCard: View {
         HStack(spacing: 8) {
             Image(systemName: "plus")
                 .font(.subheadline)
-                .foregroundStyle(Color.middark.opacity(0.5))
+                .foregroundStyle(Color.middark)
 
-            TextField("Build an orange", text: $newTask)
+            TextField("Let me know what's on ur mind", text: $newTask)
                 .textFieldStyle(.plain)
+                .foregroundColor(.middark)
                 .focused($fieldIsFocused)
                 .onSubmit(addTask)
                 .submitLabel(.done)
@@ -79,33 +81,12 @@ struct ToDoCard: View {
         fieldIsFocused = true
     }
 
-    private static var fileURL: URL {
-        let fm = FileManager.default
-        let appSupport = fm.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let bundleID = Bundle.main.bundleIdentifier ?? "air"
-        let dir = appSupport.appendingPathComponent(bundleID, isDirectory: true)
-        if !fm.fileExists(atPath: dir.path) {
-            try? fm.createDirectory(at: dir, withIntermediateDirectories: true)
-        }
-        return dir.appendingPathComponent("todos.json")
-    }
-
     private func loadItems() {
-        do {
-            let data = try Data(contentsOf: Self.fileURL)
-            items = try JSONDecoder().decode([ToDoItem].self, from: data)
-        } catch {
-            items = []
-        }
+        items = JSONManager.load([ToDoItem].self, from: filename) ?? []
     }
 
     private func saveItems() {
-        do {
-            let data = try JSONEncoder().encode(items)
-            try data.write(to: Self.fileURL, options: .atomic)
-        } catch {
-            print("Failed to save todos: \(error)")
-        }
+        try? JSONManager.save(items, to: filename)
     }
 }
 
