@@ -5,6 +5,14 @@ Every morning I was bouncing between five apps just to check the weather and hea
 
 ![air dashboard](screenshots/dashboard.png)
 
+## AI Declaration
+
+Yes, I used AI models for this project. Specifically: in-line code completions to save time, and AudioManager used Gemini to help make. I used Claude to help me research how to find CPU, GPU and some memory stats in the System Stats card, but everything else in the project was done by me.
+
+## Credits
+
+My project uses Kirtan Shah's [nowplaying-cli](https://github.com/kirtan-shah/nowplaying-cli) to pull metadata from macOS's Now Playing system.
+
 ## What it does
 `air` opens a card-based dashboard so you get the important stuff quickly instead of hunting through different apps. From factory release it includes:
 - Weather (current conditions and a multi-day forecast)
@@ -17,6 +25,8 @@ Every morning I was bouncing between five apps just to check the weather and hea
 - Bookmarks (quick links/app shortcuts)
 - Audio Player (playback controls for media)
 - Speed Test (internet speed test)
+- System Stats (shows system statistics)
+
 Cards are laid out on a grid and has settings, so you can configure the dashboard to show you what you care about.
 ## Built With
 - Swift + SwiftUI
