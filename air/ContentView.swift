@@ -287,7 +287,7 @@ struct ContentView: View {
                     
                     if twoButtons {
                         SettingsButton()
-                            .padding(2)
+                            .padding(10)
                     }
                 }
                 .coordinateSpace(name: EditGrid.coordinateSpaceName)

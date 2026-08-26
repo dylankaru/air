@@ -58,89 +58,174 @@ struct TimerCard: View {
     var body: some View {
         Card {
             VStack() {
-                HStack(spacing: 8) {
-                    Picker("Timer Mode", selection: $selectedMode) {
-                        ForEach(TimerMode.allCases, id: \.self) { mode in
-                            Text(mode.title).tag(mode)
+                if #available(macOS 27, *) {
+                    HStack(spacing: 8) {
+                        Picker("Timer Mode", selection: $selectedMode) {
+                            ForEach(TimerMode.allCases, id: \.self) { mode in
+                                Text(mode.title).tag(mode)
+                            }
                         }
-                    }
-                    .pickerStyle(.tabs)
-                    .labelsHidden()
-                    .onChange(of: selectedMode) { oldMode, newMode in
-                        let selectedDuration = duration(for: newMode)
-                        totalDuration = selectedDuration
-                        timeLeft = selectedDuration
-                        isRunning = false
-                        savedIsRunning = false
-                        targetDateTimestamp = 0
-                    }
-
-                    HStack(spacing: 5) {
-                        ForEach(0..<maxCycleSessions, id: \.self) { index in
-                            Circle()
-                                .fill(index < (completedSessions % maxCycleSessions) ? Color.green : Color.primary.opacity(0.15))
-                                .frame(width: 6, height: 6)
-                                .animation(.snappy, value: completedSessions)
+                        .pickerStyle(.tabs)
+                        .labelsHidden()
+                        .onChange(of: selectedMode) { oldMode, newMode in
+                            let selectedDuration = duration(for: newMode)
+                            totalDuration = selectedDuration
+                            timeLeft = selectedDuration
+                            isRunning = false
+                            savedIsRunning = false
+                            targetDateTimestamp = 0
                         }
-                    }
-                    .padding(.trailing, 4)
-                }
-                .padding(3)
-                .background(theme.textColour, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
-                .padding(.top, 6)
-                
-                ZStack {
-                    Circle()
-                        .stroke(Color.primary.opacity(0.1), lineWidth: 7)
-                    
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(Color.green, style: StrokeStyle(lineWidth: 7, lineCap: .round))
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: timeLeft)
-
-                    Button(action: toggleTimer) {
-                        let text = Text(formattedTime(timeLeft))
-                            .font(.system(size: 26, weight: .semibold, design: .monospaced))
-                            .foregroundColor(theme.textColour)
                         
-                        if useSlidingAnimation {
-                            text
-                                .contentTransition(.numericText(value: Double(timeLeft)))
-                                .animation(.snappy(duration: 0.3), value: timeLeft)
-                        } else {
-                            text
+                        HStack(spacing: 5) {
+                            ForEach(0..<maxCycleSessions, id: \.self) { index in
+                                Circle()
+                                    .fill(index < (completedSessions % maxCycleSessions) ? Color.green : Color.primary.opacity(0.15))
+                                    .frame(width: 6, height: 6)
+                                    .animation(.snappy, value: completedSessions)
+                            }
                         }
+                        .padding(.trailing, 4)
                     }
-                    .buttonStyle(.plain)
+                    .padding(3)
+                    .background(theme.textColour, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.top, 6)
+                    
+                    ZStack {
+                        Circle()
+                            .stroke(Color.primary.opacity(0.1), lineWidth: 7)
+                        
+                        Circle()
+                            .trim(from: 0, to: progress)
+                            .stroke(Color.green, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .animation(.linear(duration: 1), value: timeLeft)
+                        
+                        Button(action: toggleTimer) {
+                            let text = Text(formattedTime(timeLeft))
+                                .font(.system(size: 26, weight: .semibold, design: .monospaced))
+                                .foregroundColor(theme.textColour)
+                            
+                            if useSlidingAnimation {
+                                text
+                                    .contentTransition(.numericText(value: Double(timeLeft)))
+                                    .animation(.snappy(duration: 0.3), value: timeLeft)
+                            } else {
+                                text
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.top, 8)
+                    .frame(width: 105, height: 105)
+                    
+                    HStack(spacing: 10) {
+                        Button(action: toggleTimer) {
+                            Image(systemName: isRunning ? "pause.fill" : "play.fill")
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 7)
+                                .foregroundColor(theme.textColour)
+                                .background(Color.primary.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(action: resetTimer) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 7)
+                                .foregroundColor(theme.textColour)
+                                .background(Color.primary.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                } else {
+                    HStack(spacing: 8) {
+                        Picker("Timer Mode", selection: $selectedMode) {
+                            ForEach(TimerMode.allCases, id: \.self) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .labelsHidden()
+                        .onChange(of: selectedMode) { oldMode, newMode in
+                            let selectedDuration = duration(for: newMode)
+                            totalDuration = selectedDuration
+                            timeLeft = selectedDuration
+                            isRunning = false
+                            savedIsRunning = false
+                            targetDateTimestamp = 0
+                        }
+                        
+                        HStack(spacing: 5) {
+                            ForEach(0..<maxCycleSessions, id: \.self) { index in
+                                Circle()
+                                    .fill(index < (completedSessions % maxCycleSessions) ? Color.green : Color.primary.opacity(0.15))
+                                    .frame(width: 6, height: 6)
+                                    .animation(.snappy, value: completedSessions)
+                            }
+                        }
+                        .padding(.trailing, 4)
+                    }
+                    .padding(3)
+                    .background(theme.textColour, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .padding(.top, 6)
+                    
+                    ZStack {
+                        Circle()
+                            .stroke(Color.primary.opacity(0.1), lineWidth: 7)
+                        
+                        Circle()
+                            .trim(from: 0, to: progress)
+                            .stroke(Color.green, style: StrokeStyle(lineWidth: 7, lineCap: .round))
+                            .rotationEffect(.degrees(-90))
+                            .animation(.linear(duration: 1), value: timeLeft)
+                        
+                        Button(action: toggleTimer) {
+                            let text = Text(formattedTime(timeLeft))
+                                .font(.system(size: 26, weight: .semibold, design: .monospaced))
+                                .foregroundColor(theme.textColour)
+                            
+                            if useSlidingAnimation {
+                                text
+                                    .contentTransition(.numericText(value: Double(timeLeft)))
+                                    .animation(.snappy(duration: 0.3), value: timeLeft)
+                            } else {
+                                text
+                            }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                    .padding(.top, 8)
+                    .frame(width: 105, height: 105)
+                    
+                    HStack(spacing: 10) {
+                        Button(action: toggleTimer) {
+                            Image(systemName: isRunning ? "pause.fill" : "play.fill")
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 7)
+                                .foregroundColor(theme.textColour)
+                                .background(Color.primary.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                        
+                        Button(action: resetTimer) {
+                            Image(systemName: "arrow.counterclockwise")
+                                .font(.system(size: 13, weight: .medium))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 7)
+                                .foregroundColor(theme.textColour)
+                                .background(Color.primary.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
-                .padding(.top, 8)
-                .frame(width: 105, height: 105)
-
-                HStack(spacing: 10) {
-                    Button(action: toggleTimer) {
-                        Image(systemName: isRunning ? "pause.fill" : "play.fill")
-                            .font(.system(size: 13, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 7)
-                            .foregroundColor(theme.textColour)
-                            .background(Color.primary.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-
-                    Button(action: resetTimer) {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: 13, weight: .medium))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 7)
-                            .foregroundColor(theme.textColour)
-                            .background(Color.primary.opacity(0.08))
-                            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
                 }
-            }
 //            .padding(6)
             .frame(maxWidth: .infinity)
             .onAppear {
