@@ -54,7 +54,7 @@ cd air
 2. Open `air.xcodeproj` in Xcode
 3. Build and run (`⌘R`)
 
-> Note: The Audio Player's "macOS Now Playing" source uses a bundled copy of `nowplaying-cli` — no separate install needed.
+> Note: The Audio Player's "macOS Now Playing" source uses a bundled copy of `nowplaying-cli`, no separate install needed.
 
 ## Project Structure
 ```
