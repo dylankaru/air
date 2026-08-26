@@ -1,5 +1,8 @@
 # air
 air is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance.
+
+![air dashboard](screenshots/dashboard.png)
+
 ## What it does
 `air` opens a card-based dashboard so you get the important stuff quickly instead of hunting through different apps. From factory release it includes:
 - Weather (current conditions and a multi-day forecast)
