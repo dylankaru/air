@@ -27,6 +27,8 @@ enum TimerMode: String, CaseIterable, Identifiable {
 }
 
 struct TimerCard: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @AppStorage("timer_work_duration") private var workDuration: Int = TimerMode.work.defaultDuration
     @AppStorage("timer_rest_duration") private var restDuration: Int = TimerMode.rest.defaultDuration
     @AppStorage("timer_off_duration") private var offDuration: Int = TimerMode.off.defaultDuration
@@ -84,7 +86,7 @@ struct TimerCard: View {
                     .padding(.trailing, 4)
                 }
                 .padding(3)
-                .background(Color.middark, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                .background(theme.textColour, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                 .padding(.top, 6)
                 
                 ZStack {
@@ -100,7 +102,7 @@ struct TimerCard: View {
                     Button(action: toggleTimer) {
                         let text = Text(formattedTime(timeLeft))
                             .font(.system(size: 26, weight: .semibold, design: .monospaced))
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                         
                         if useSlidingAnimation {
                             text
@@ -121,7 +123,7 @@ struct TimerCard: View {
                             .font(.system(size: 13, weight: .medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 7)
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                             .background(Color.primary.opacity(0.08))
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }
@@ -132,7 +134,7 @@ struct TimerCard: View {
                             .font(.system(size: 13, weight: .medium))
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 7)
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                             .background(Color.primary.opacity(0.08))
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     }

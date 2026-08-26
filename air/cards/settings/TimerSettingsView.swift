@@ -26,6 +26,7 @@ struct TimerSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .navigationTitle("Timer Card")
     }
     
     private var workMinutes: Binding<Int> {

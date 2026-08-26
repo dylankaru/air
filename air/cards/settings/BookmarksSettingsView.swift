@@ -68,6 +68,7 @@ struct BookmarksSettingsView: View {
         .onChange(of: bookmarks) { _, newBookmarks in
             BookmarkStorage.save(newBookmarks)
         }
+        .navigationTitle("Bookmarks Card")
     }
 }
 

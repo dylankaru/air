@@ -9,6 +9,8 @@ import SwiftUI
 import EventKit
 
 struct CalendarCard: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @State private var eventStore = EKEventStore()
     @State private var isAuthorised = false
     @State private var upcomingEvents: [EKEvent] = []
@@ -19,7 +21,7 @@ struct CalendarCard: View {
                 Text("UPCOMING")
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.middark)
+                    .foregroundColor(theme.textColour)
 
                 if isAuthorised {
                     if !upcomingEvents.isEmpty {
@@ -61,7 +63,7 @@ struct CalendarCard: View {
 
                     Text(event.title)
                         .font(.title3)
-                        .foregroundColor(.middark)
+                        .foregroundColor(theme.textColour)
                         .bold()
                         .lineLimit(1)
                 }
@@ -71,7 +73,7 @@ struct CalendarCard: View {
                 Text(relativeDayLabel(for: event.startDate))
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.middark)
+                    .foregroundColor(theme.textColour)
 
                 if event.isAllDay {
                     Text("All day")
@@ -86,7 +88,7 @@ struct CalendarCard: View {
                 if event.hasAlarms {
                     Image(systemName: "bell.fill")
                         .font(.caption2)
-                        .foregroundColor(.middark)
+                        .foregroundColor(theme.textColour)
                 }
             }
 
@@ -95,10 +97,10 @@ struct CalendarCard: View {
                     HStack(spacing: 4) {
                         Image(systemName: "location.fill")
                             .font(.caption)
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                         Text(location)
                             .font(.subheadline)
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                             .lineLimit(1)
                     }
                 }
@@ -106,23 +108,23 @@ struct CalendarCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "clock")
                         .font(.caption)
-                        .foregroundColor(.middark)
+                        .foregroundColor(theme.textColour)
                     Text(durationText(for: event))
                         .font(.subheadline)
-                        .foregroundColor(.middark)
+                        .foregroundColor(theme.textColour)
                 }
 
                 Spacer()
 
                 Text(event.startDate, style: .date)
                     .font(.subheadline)
-                    .foregroundColor(.middark)
+                    .foregroundColor(theme.textColour)
             }
 
             if let notes = event.notes?.trimmingCharacters(in: .whitespacesAndNewlines), !notes.isEmpty {
                 Text(notes)
                     .font(.footnote)
-                    .foregroundColor(.middark)
+                    .foregroundColor(theme.textColour)
                     .lineLimit(1)
             }
         }

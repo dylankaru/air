@@ -40,7 +40,7 @@ struct AudioPlayerSettingsView: View {
             }
         }
         .formStyle(.grouped)
-        .navigationTitle("Audio Card")
+        .navigationTitle("Audio Player Card")
     }
 
     private var footerText: some View {

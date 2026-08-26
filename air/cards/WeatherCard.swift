@@ -43,6 +43,8 @@ final class WeatherLocationProvider: NSObject, CLLocationManagerDelegate {
 }
 
 struct WeatherCard: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @State private var weather: WeatherResponse?
     @State private var isLoading = true
     @State private var errorMessage: String?
@@ -100,12 +102,12 @@ struct WeatherCard: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(today.condition)
                 .font(.system(size: 10))
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
                 .lineLimit(1)
 
             Text("\(Int(today.currentTempC.rounded()))°")
                 .font(.system(size: 26, weight: .semibold))
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
 
             HStack(spacing: 8) {
                 Label("\(Int(today.maxTempC.rounded()))°/\(Int(today.minTempC.rounded()))°",
@@ -113,7 +115,7 @@ struct WeatherCard: View {
                 Label("\(today.chanceOfRain)%", systemImage: "drop.fill")
             }
             .font(.system(size: 9))
-            .foregroundStyle(Color.middark)
+            .foregroundColor(theme.textColour)
             .lineLimit(1)
         }
         .padding(.top, 2)
@@ -162,17 +164,17 @@ struct WeatherCard: View {
         HStack(spacing: 5) {
             Image(systemName: icon)
                 .font(.system(size: 11))
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
                 .frame(width: 12)
 
             HStack(spacing: 3) {
                 Text(title)
                     .font(.system(size: 10))
-                    .foregroundStyle(Color.middark.opacity(0.7))
+                    .foregroundColor(theme.textColour.opacity(0.7))
                     .lineLimit(1)
                 Text(value)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(Color.middark)
+                    .foregroundColor(theme.textColour)
                     .lineLimit(1)
                     .minimumScaleFactor(0.85)
             }
@@ -300,10 +302,10 @@ struct WeatherCard: View {
         VStack(spacing: 6) {
             Image(systemName: icon)
                 .font(.system(size: 14))
-                .foregroundStyle(Color.middark.opacity(0.6))
+                .foregroundColor(theme.textColour.opacity(0.6))
             Text(text)
                 .font(.system(size: 9))
-                .foregroundStyle(Color.middark.opacity(0.6))
+                .foregroundColor(theme.textColour.opacity(0.6))
                 .multilineTextAlignment(.center)
         }
         .frame(minWidth: 90)
@@ -316,20 +318,20 @@ struct WeatherCard: View {
                     VStack(spacing: 8) {
                         Text(shortWeekday(from: day.date))
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
 
                         Image(systemName: symbol(for: day.condition))
                             .font(.system(size: 10))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
                             .frame(height: 11)
 
                         Text("\(Int(day.maxTempC.rounded()))°/\(Int(day.minTempC.rounded()))°")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
 
                         Text("\(day.chanceOfRain)%")
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(.blue)
+                            .foregroundColor(.blue)
                     }
                 }
             }
@@ -343,20 +345,20 @@ struct WeatherCard: View {
                     VStack(spacing: 6) {
                         Text(hour.time)
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
 
                         Image(systemName: symbol(for: hour.condition))
                             .font(.system(size: 10))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
                             .frame(height: 11)
 
                         Text("\(Int(hour.tempC.rounded()))°")
                             .font(.system(size: 9))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
 
                         Text("\(hour.chanceOfRain)%")
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(.blue)
+                            .foregroundColor(.blue)
                     }
                 }
             }
@@ -373,10 +375,10 @@ struct WeatherCard: View {
                     HStack(alignment: .top, spacing: 4) {
                         Image(systemName: "exclamationmark.triangle.fill")
                             .font(.system(size: 9))
-                            .foregroundStyle(.orange)
+                            .foregroundColor(.orange)
                         Text(alert.headline)
                             .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(Color.middark)
+                            .foregroundColor(theme.textColour)
                             .lineLimit(2)
                     }
                 }
@@ -390,10 +392,10 @@ struct WeatherCard: View {
         VStack(alignment: .center) {
             Text("Couldn't load weather")
                 .font(.caption)
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
                 .multilineTextAlignment(.center)
         }
-        .foregroundStyle(Color.middark)
+        .foregroundColor(theme.textColour)
     }
 
     private func loadWeather() async {

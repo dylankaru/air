@@ -58,7 +58,14 @@ struct StreakCard: View {
 
     @AppStorage("streak_last_progression") private var lastProgressionTimestamp: Double = 0
 
-    private let maxVisibleUnits: Int = 154
+    private let dotSize: CGFloat = 12
+    private let dotSpacing: CGFloat = 8
+
+    private let ticksPerRow: Int = 4
+    private let indicatorRowHeight: CGFloat = 8
+    private let indicatorTickSpacing: CGFloat = 5
+
+    @State private var capacity: Int = 132
 
     private var currentSetting: StreakSetting {
         StreakSetting(rawValue: currentSettingRaw) ?? .countUpVis
@@ -76,13 +83,24 @@ struct StreakCard: View {
 
     var body: some View {
         Card {
-            CircleThing()
-                .clipped()
-                .padding(10)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    handleCardTap()
+            VStack(spacing: 6) {
+                IndicatorRow(filled: topTicksFilled)
+
+                GeometryReader { geo in
+                    CircleThing()
+                        .frame(width: geo.size.width, height: geo.size.height)
+                        .clipped()
+                        .onAppear { updateCapacity(for: geo.size) }
+                        .onChange(of: geo.size) { _, newSize in updateCapacity(for: newSize) }
                 }
+
+                IndicatorRow(filled: bottomTicksFilled)
+            }
+            .padding(10)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                handleCardTap()
+            }
         }
         .onAppear {
             applyAutomaticProgressionIfNeeded()
@@ -98,6 +116,8 @@ struct StreakCard: View {
     }
 
     private func handleCardTap() {
+        guard incrementMode == .manual else { return }
+
         withAnimation(.easeInOut(duration: 0.2)) {
             streakCount = min(streakCount + 1, totalDays)
         }
@@ -105,12 +125,14 @@ struct StreakCard: View {
 
     private func toggleUnit(at index: Int) {
         guard incrementMode == .manual else { return }
-        
+
+        let globalIndex = currentLap * capacity + index
+
         withAnimation(.easeInOut(duration: 0.2)) {
-            if index < streakCount {
-                streakCount = index
+            if globalIndex < streakCount {
+                streakCount = globalIndex
             } else {
-                streakCount = index + 1
+                streakCount = min(globalIndex + 1, totalDays)
             }
         }
     }
@@ -147,66 +169,116 @@ struct StreakCard: View {
         lastProgressionTimestamp += Double(elapsedUnits) * timeInterval.approximateSeconds
     }
 
+    private func updateCapacity(for size: CGSize) {
+        guard size.width > 0, size.height > 0 else { return }
+        let perRow = max(1, Int((size.width + dotSpacing) / (dotSize + dotSpacing)))
+        let rows = max(1, Int((size.height + dotSpacing) / (dotSize + dotSpacing)))
+        let newCapacity = perRow * rows
+        if newCapacity != capacity {
+            capacity = newCapacity
+        }
+    }
+
+    private var progressUnits: Int {
+        streakCount
+    }
+
+    private var currentLap: Int {
+        guard capacity > 0 else { return 0 }
+        return progressUnits / capacity
+    }
+
+    private var positionInLap: Int {
+        guard capacity > 0 else { return 0 }
+        return progressUnits % capacity
+    }
+
+    private var topTicksFilled: Int {
+        min(ticksPerRow, currentLap)
+    }
+
+    private var bottomTicksFilled: Int {
+        min(ticksPerRow, max(0, currentLap - ticksPerRow))
+    }
+
+    @ViewBuilder
+    private func IndicatorRow(filled: Int) -> some View {
+        HStack(spacing: indicatorTickSpacing) {
+            ForEach(0..<ticksPerRow, id: \.self) { i in
+                Capsule()
+                    .fill(i < filled ? cardColors.primary : Color.clear)
+                    .frame(height: indicatorRowHeight)
+                    .frame(maxWidth: .infinity)
+                    .clipShape(Capsule())
+            }
+        }
+        .frame(height: indicatorRowHeight)
+    }
+
     @ViewBuilder
     private func CircleThing() -> some View {
-        let effectiveTotal = min(totalDays, maxVisibleUnits)
+        let goalGlobalIndex = max(0, totalDays - 1)
+        let goalLap = capacity > 0 ? goalGlobalIndex / capacity : 0
+        let goalPosition = capacity > 0 ? goalGlobalIndex % capacity : 0
 
         let isGoalIndex = { (index: Int) -> Bool in
-            index == (effectiveTotal - 1) && useCustomGoalColor
+            useCustomGoalColor && currentLap == goalLap && index == goalPosition
         }
 
         switch currentSetting {
         case .countUpVis:
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<effectiveTotal, id: \.self) { index in
+            LazyVGrid(columns: columns, spacing: dotSpacing) {
+                ForEach(0..<capacity, id: \.self) { index in
                     Button {
                         toggleUnit(at: index)
                     } label: {
                         Circle()
                             .fill(
                                 isGoalIndex(index) ? goalColor :
-                                (index < streakCount ? cardColors.primary : cardColors.secondary)
+                                (index < positionInLap ? cardColors.primary : cardColors.secondary)
                             )
-                            .frame(width: 12, height: 12)
+                            .frame(width: dotSize, height: dotSize)
                     }
                     .buttonStyle(.plain)
-                    .disabled(incrementMode != .manual)
+                    .allowsHitTesting(incrementMode == .manual)
                 }
             }
 
         case .countUpInvis:
-            let visibleCompleted = min(streakCount, maxVisibleUnits)
-
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<visibleCompleted, id: \.self) { index in
+            LazyVGrid(columns: columns, spacing: dotSpacing) {
+                ForEach(0..<capacity, id: \.self) { index in
                     Button {
                         toggleUnit(at: index)
                     } label: {
                         Circle()
-                            .fill(isGoalIndex(index) ? goalColor : cardColors.primary)
-                            .frame(width: 12, height: 12)
+                            .fill(
+                                index < positionInLap
+                                ? (isGoalIndex(index) ? goalColor : cardColors.primary)
+                                : Color.clear
+                            )
+                            .frame(width: dotSize, height: dotSize)
                     }
                     .buttonStyle(.plain)
-                    .disabled(incrementMode != .manual)
+                    .allowsHitTesting(incrementMode == .manual)
                 }
             }
 
         case .countDown:
-            LazyVGrid(columns: columns, spacing: 8) {
-                ForEach(0..<effectiveTotal, id: \.self) { index in
-                    let remainingDays = max(0, totalDays - streakCount)
+            LazyVGrid(columns: columns, spacing: dotSpacing) {
+                ForEach(0..<capacity, id: \.self) { index in
+                    let reversedIndex = capacity - 1 - index
                     Button {
-                        toggleUnit(at: totalDays - 1 - index)
+                        toggleUnit(at: reversedIndex)
                     } label: {
                         Circle()
                             .fill(
-                                isGoalIndex(index) ? goalColor :
-                                (index < remainingDays ? cardColors.primary : cardColors.secondary)
+                                (useCustomGoalColor && currentLap == goalLap && reversedIndex == goalPosition) ? goalColor :
+                                (reversedIndex < positionInLap ? cardColors.primary : cardColors.secondary)
                             )
-                            .frame(width: 12, height: 12)
+                            .frame(width: dotSize, height: dotSize)
                     }
                     .buttonStyle(.plain)
-                    .disabled(incrementMode != .manual)
+                    .allowsHitTesting(incrementMode == .manual)
                 }
             }
         }

@@ -26,7 +26,7 @@ struct WeatherSettingsView: View {
             Section {
                 Text("\(currentUsedSlots) of \(maxSlots) display slots used")
                     .font(.subheadline)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             } header: {
                 Text("Selection Limit")
             } footer: {

@@ -18,6 +18,8 @@ enum ClipboardStorage {
 }
 
 struct ClipboardCard: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     let pasteboard = NSPasteboard.general
     private let filename = ClipboardStorage.filename
     
@@ -33,11 +35,11 @@ struct ClipboardCard: View {
                     VStack {
                         Spacer()
                         Text("Nothing in the clipboard yet")
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                             .font(.caption)
                             .frame(maxWidth: .infinity, alignment: .center)
                         Text("This card tracks clipboard history while air is open")
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                             .font(.caption)
                             .frame(maxWidth: .infinity, alignment: .center)
                         Spacer()
@@ -107,6 +109,8 @@ struct ClipboardCard: View {
 }
 
 struct ClipboardCardRow: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     let item: String
     let onCopy: () -> Void
     
@@ -150,7 +154,7 @@ struct ClipboardCardRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
-        .background(Color.middark.opacity(0.8))
+        .background(theme.textColour.opacity(0.8))
         .cornerRadius(8)
     }
 }

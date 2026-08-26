@@ -26,6 +26,7 @@ enum AudioSourceSetting: String, CaseIterable, Identifiable {
 struct AudioPlayerCard: View {
     @AppStorage("audio_player_source") private var audioSourceRaw: String = AudioSourceSetting.spotify.rawValue
     @AppStorage("audio_show_artwork") private var showArtwork: Bool = true
+    @AppStorage("air_theme") private var theme: Theme = .light
 
     @StateObject private var controller: AudioSourceController
 
@@ -65,8 +66,8 @@ struct AudioPlayerCard: View {
             }
             .padding(16)
         }
-        .tint(.middark)
-        .foregroundColor(.middark)
+        .tint(theme.textColour)
+        .foregroundColor(theme.textColour)
         .onAppear {
             volume = controller.track.volume
             if !hasKickedOffPlayback {
@@ -111,12 +112,12 @@ struct AudioPlayerCard: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(displayTitle)
                     .font(.system(size: audioSource == .systemNowPlaying ? 16 : 13, weight: audioSource == .systemNowPlaying ? .bold : .semibold))
-                    .foregroundColor(.middark)
+                    .foregroundColor(theme.textColour)
                     .lineLimit(1)
                 
                 Text(displayArtist)
                     .font(.system(size: audioSource == .systemNowPlaying ? 13 : 11, weight: .medium))
-                    .foregroundColor(.middark.opacity(0.75))
+                    .foregroundColor(theme.textColour.opacity(0.75))
                     .lineLimit(1)
             }
             Spacer(minLength: 0)
@@ -132,10 +133,10 @@ struct AudioPlayerCard: View {
             } else {
                 ZStack {
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.middark.opacity(0.1))
+                        .fill(theme.textColour.opacity(0.1))
                     Image(systemName: "music.note")
                         .font(.system(size: 16))
-                        .foregroundColor(.middark.opacity(0.5))
+                        .foregroundColor(theme.textColour.opacity(0.5))
                 }
             }
         }
@@ -163,7 +164,7 @@ struct AudioPlayerCard: View {
                 }
             )
             .controlSize(.small)
-            .tint(.middark)
+            .tint(theme.textColour)
             .disabled(!audioSource.kind.supportsScrubAndVolume)
 
             HStack {
@@ -172,7 +173,7 @@ struct AudioPlayerCard: View {
                 Text(formatTime(controller.track.duration))
             }
             .font(.system(size: 10, weight: .medium, design: .monospaced))
-            .foregroundColor(.middark.opacity(0.6))
+            .foregroundColor(theme.textColour.opacity(0.6))
         }
     }
 
@@ -204,14 +205,14 @@ struct AudioPlayerCard: View {
         }
         .frame(maxWidth: .infinity, alignment: isSystem ? .leading : .center)
         .buttonStyle(.plain)
-        .foregroundColor(.middark)
+        .foregroundColor(theme.textColour)
     }
 
     private var volumeBar: some View {
         HStack(spacing: 8) {
             Image(systemName: "speaker.fill")
                 .font(.system(size: 9))
-                .foregroundColor(.middark.opacity(0.6))
+                .foregroundColor(theme.textColour.opacity(0.6))
             
             Slider(
                 value: $volume,
@@ -223,12 +224,12 @@ struct AudioPlayerCard: View {
                 }
             )
             .controlSize(.small)
-            .tint(.middark)
+            .tint(theme.textColour)
             .disabled(!audioSource.kind.supportsScrubAndVolume)
             
             Image(systemName: "speaker.wave.2.fill")
                 .font(.system(size: 9))
-                .foregroundColor(.middark.opacity(0.6))
+                .foregroundColor(theme.textColour.opacity(0.6))
         }
     }
     
@@ -242,7 +243,7 @@ struct AudioPlayerCard: View {
         } label: {
             Image(systemName: "arrow.triangle.2.circlepath")
                 .font(.system(size: audioSource == .systemNowPlaying ? 13 : 12, weight: .medium))
-                .foregroundColor(.middark.opacity(0.75))
+                .foregroundColor(theme.textColour.opacity(0.75))
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .buttonStyle(.plain)

@@ -2,6 +2,8 @@ import SwiftUI
 import AppKit
 
 struct NewsCard: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @AppStorage("news_user_prefs") private var newsPreference: String = "news today"
     @AppStorage("news_too_distracting") private var turnOffNews: Bool = false
     
@@ -21,11 +23,11 @@ struct NewsCard: View {
                         ZStack {
                             if let errorMessage {
                                 Text(errorMessage)
-                                    .foregroundColor(.middark)
+                                    .foregroundColor(theme.textColour)
                                     .font(.caption)
                             } else if !isReady {
                                 Text("Loading news…")
-                                    .foregroundColor(.middark)
+                                    .foregroundColor(theme.textColour)
                             } else {
                                 NewsCardContent(
                                     article: articles[currentIndex],
@@ -47,7 +49,7 @@ struct NewsCard: View {
                         VStack {
                             Spacer()
                             Text("You've turned off news... I see how it is")
-                                .foregroundColor(.middark)
+                                .foregroundColor(theme.textColour)
                                 .frame(maxWidth: .infinity, alignment: .center)
                             Spacer()
                         }
@@ -167,6 +169,8 @@ struct NewsCard: View {
 }
 
 private struct NewsCardContent: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     let article: NewsArticle
     let image: NSImage?
 
@@ -180,11 +184,11 @@ private struct NewsCardContent: View {
                     .clipped()
             } else {
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.middark.opacity(0.12))
+                    .fill(theme.textColour.opacity(0.12))
                     .overlay(
                         Image(systemName: "newspaper")
                             .font(.system(size: 24))
-                            .foregroundColor(.middark.opacity(0.35))
+                            .foregroundColor(theme.textColour.opacity(0.35))
                     )
             }
 

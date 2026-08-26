@@ -38,5 +38,6 @@ struct NewsSettingsView: View {
             }
         }
         .formStyle(.grouped)
+        .navigationTitle("News Card")
     }
 }

@@ -177,11 +177,21 @@ final class AudioSourceController: ObservableObject {
 
     private var pollTimer: Timer?
     private var source: AudioSourceKind
-    
+
     private var cachedTrackKey: String = ""
     private var cachedArtwork: NSImage? = nil
 
     private let scriptQueue = DispatchQueue(label: "com.air.applescriptQueue", qos: .utility)
+
+    // Guards against the poll timer (or an immediate post-action query)
+    // clobbering an optimistic UI state before the target app has actually
+    // finished updating its player state.
+    private var actionOccuring: Bool = false
+
+    // How long to wait after firing a control script before trusting a
+    // fresh state query. Spotify/Music don't update player state
+    // synchronously with the AppleScript command returning.
+    private let postActionSettleDelay: TimeInterval = 0.45
 
     init(source: AudioSourceKind) {
         self.source = source
@@ -198,7 +208,8 @@ final class AudioSourceController: ObservableObject {
     func startPolling() {
         pollTimer?.invalidate()
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
-            self?.refresh()
+            guard let self, !self.actionOccuring else { return }
+            self.refresh()
         }
         refresh()
     }
@@ -251,7 +262,7 @@ final class AudioSourceController: ObservableObject {
             if let error = error {
                 print("Error booting background player: \(error)")
             }
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                 completion()
             }
@@ -261,12 +272,13 @@ final class AudioSourceController: ObservableObject {
     func togglePlayPause() {
         switch source {
         case .spotify, .appleMusic:
+            actionOccuring = true
             track.isPlaying.toggle()
             runAppleScriptOffMainThread(script(for: .playPause))
         case .systemNowPlaying:
             track.isPlaying.toggle()
             MediaRemoteBridge.shared.togglePlayPause()
-            
+
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
                 self?.refresh()
             }
@@ -276,6 +288,7 @@ final class AudioSourceController: ObservableObject {
     func next() {
         switch source {
         case .spotify, .appleMusic:
+            actionOccuring = true
             runAppleScriptOffMainThread(script(for: .next))
         case .systemNowPlaying:
             MediaRemoteBridge.shared.next()
@@ -288,6 +301,7 @@ final class AudioSourceController: ObservableObject {
     func previous() {
         switch source {
         case .spotify, .appleMusic:
+            actionOccuring = true
             runAppleScriptOffMainThread(script(for: .previous))
         case .systemNowPlaying:
             MediaRemoteBridge.shared.previous()
@@ -324,7 +338,16 @@ final class AudioSourceController: ObservableObject {
         scriptQueue.async { [weak self] in
             self?.runAppleScript(sourceStr)
             DispatchQueue.main.async {
-                self?.refresh()
+                guard let self else { return }
+                // Don't query state immediately — Spotify/Music haven't
+                // necessarily updated their internal player state yet,
+                // so an instant refresh can read stale data and clobber
+                // the optimistic UI update. Wait briefly, then refresh
+                // and only clear the guard once that settled state lands.
+                DispatchQueue.main.asyncAfter(deadline: .now() + self.postActionSettleDelay) {
+                    self.refresh()
+                    self.actionOccuring = false
+                }
             }
         }
     }
@@ -337,12 +360,12 @@ final class AudioSourceController: ObservableObject {
                 guard let self else { return }
                 guard let result = self.runAppleScript(script) else { return }
                 let (parsedTrack, artworkUrl) = self.parseState(result.stringValue)
-                
+
                 let trackKey = "\(parsedTrack.title)|\(parsedTrack.artist)"
-                
+
                 if trackKey != self.cachedTrackKey {
                     self.cachedTrackKey = trackKey
-                    
+
                     if parsedTrack.title == "Nothing Playing" || parsedTrack.title.isEmpty {
                         self.cachedArtwork = nil
                     } else if self.source == .spotify, let urlString = artworkUrl, let url = URL(string: urlString) {
@@ -357,10 +380,10 @@ final class AudioSourceController: ObservableObject {
                         self.cachedArtwork = nil
                     }
                 }
-                
+
                 var finalTrack = parsedTrack
                 finalTrack.artwork = self.cachedArtwork
-                
+
                 DispatchQueue.main.async { self.track = finalTrack }
             }
         case .systemNowPlaying:
@@ -386,7 +409,7 @@ final class AudioSourceController: ObservableObject {
             duration: Double(parts[4]) ?? 0,
             volume: Double(parts[5]) ?? 50
         )
-        
+
         let artworkUrl = parts.count >= 7 ? parts[6] : nil
         return (info, artworkUrl)
     }

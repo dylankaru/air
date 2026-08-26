@@ -66,6 +66,8 @@ struct SettingsView: View {
                 Section {
                     Label("General", systemImage: "gearshape")
                         .tag("general")
+                    Label("Layout", systemImage: "rectangle.grid.3x1")
+                        .tag("layout")
                 }
 
                 Section("Cards") {
@@ -80,12 +82,14 @@ struct SettingsView: View {
         } detail: {
             if selectedTabID == "general" {
                 GeneralSettingsView()
+            } else if selectedTabID == "layout" {
+                CardLayoutSettingsView()
             } else if let item = configurableItems.first(where: { $0.id.uuidString == selectedTabID }),
                       let settingsView = item.settingsView {
                 settingsView
             } else {
                 Text("Select a category")
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
             }
         }
         .frame(width: 650, height: 420)

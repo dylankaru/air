@@ -9,6 +9,10 @@ import SwiftUI
 
 //
 
+enum EditGrid {
+    static let coordinateSpaceName = "editGrid"
+}
+
 enum SettingsTab: String, CaseIterable, Identifiable {
     case general = "General"
     case news = "News"
@@ -34,95 +38,81 @@ enum SettingsTab: String, CaseIterable, Identifiable {
 
 let appCards: [CardItem] = [
     CardItem(
+        key: "greeting",
         colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2,
-        ignoreEdgePadding: true, ignoreStandardArrangements: true) {
-        GreetingCard()
-    },
-    CardItem(title: "Weather", icon: "cloud.fog.fill",
-             colStart: 6, colEnd: 13, rowStart: 0, rowEnd: 2,
-             settingsView: { WeatherSettingsView() }
-    ) {
-        WeatherCard()
-    },
+        ignoreEdgePadding: true, ignoreStandardArrangements: true
+    ) { GreetingCard() },
     CardItem(
+        key: "weather",
+        title: "Weather", icon: "cloud.fog.fill",
+        colStart: 6, colEnd: 13, rowStart: 0, rowEnd: 2,
+        minColSpan: 4, minRowSpan: 2,
+        settingsView: { WeatherSettingsView() }
+    ) { WeatherCard() },
+    CardItem(
+        key: "todo",
         colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4,
-    ) {
-        ToDoCard()
-    },
+        minColSpan: 3, minRowSpan: 3
+    ) { ToDoCard() },
     CardItem(
+        key: "news",
         title: "News", icon: "newspaper.fill",
         colStart: 6, colEnd: 13, rowStart: 2, rowEnd: 7,
+        minColSpan: 3, minRowSpan: 3,
         settingsView: { NewsSettingsView() }
-    ) {
-        NewsCard()
-    },
+    ) { NewsCard() },
     CardItem(
+        key: "streak",
         title: "Streak", icon: "flame.fill",
         colStart: 13, colEnd: 20, rowStart: 4, rowEnd: 7,
+        minColSpan: 2, minRowSpan: 2,
         settingsView: { StreakSettingsView() }
-    ) {
-        StreakCard()
-    },
+    ) { StreakCard() },
     CardItem(
+        key: "audio",
         title: "Audio Player", icon: "person.spatialaudio.fill",
         colStart: 0, colEnd: 6, rowStart: 2, rowEnd: 7,
+        minColSpan: 3, minRowSpan: 3,
         settingsView: { AudioPlayerSettingsView() }
-    ) {
-        AudioPlayerCard()
-    },
+    ) { AudioPlayerCard() },
     CardItem(
-        title: "Timer", icon: "clock.badge.fill",
+        key: "timer", title: "Timer", icon: "clock.badge.fill",
         colStart: 0, colEnd: 6, rowStart: 7, rowEnd: 11,
+        minColSpan: 2, minRowSpan: 2,
         settingsView: { TimerSettingsView() }
-    ) {
-        TimerCard()
-    },
+    ) { TimerCard() },
     CardItem(
+        key: "calendar",
         colStart: 6, colEnd: 13, rowStart: 9, rowEnd: 14,
-    ) {
-        CalendarCard()
-    },
+        minColSpan: 3, minRowSpan: 3
+    ) { CalendarCard() },
     CardItem(
+        key: "speedtest",
         title: "Speed Test", icon: "hare.fill",
         colStart: 10, colEnd: 13, rowStart: 7, rowEnd: 9,
+        minColSpan: 2, minRowSpan: 2,
         settingsView: { SpeedTestSettingsView() }
-    ) {
-        SpeedTestCard()
-    },
+    ) { SpeedTestCard() },
     CardItem(
+        key: "clipboard",
         title: "Clipboard", icon: "sparkle.text.clipboard.fill",
         colStart: 0, colEnd: 6, rowStart: 11, rowEnd: 14,
+        minColSpan: 2, minRowSpan: 2,
         settingsView: { ClipboardSettingsView() }
-    ) {
-        ClipboardCard()
-    },
+    ) { ClipboardCard() },
     CardItem(
+        key: "bookmarks",
         title: "Bookmarks", icon: "bookmark.fill",
         colStart: 6, colEnd: 10, rowStart: 7, rowEnd: 9,
+        minColSpan: 3, minRowSpan: 2,
         settingsView: { BookmarksSettingsView() }
-    ) {
-        BookmarksCard()
-    }
+    ) { BookmarksCard() },
+    CardItem(
+        key: "systemstats",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 14,
+        minColSpan: 3, minRowSpan: 3
+    ) { SystemStatsCard() }
 ]
-
-//
-
-extension Color {
-    init(hex: UInt, opacity: Double = 1.0) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xff) / 255,
-            green: Double((hex >> 08) & 0xff) / 255,
-            blue: Double((hex >> 00) & 0xff) / 255,
-            opacity: opacity
-        )
-    }
-    
-    static let beige = Color(hex: 0xfffeeb)
-    static let widget = Color(hex: 0xF2E5C9)
-    static let middark = Color(hex: 0x1D1D1D)
-    static let test = Color(hex: 0xD4E0D2)
-}
 
 extension View {
     func edgePadding(colStart: Int, colEnd: Int, maxColumns: Int = 20, paddingAmount: CGFloat = 16) -> some View {
@@ -144,16 +134,16 @@ extension View {
 }
 
 struct ColStartKey: LayoutValueKey {
-    static let defaultValue: Int = 0
+    nonisolated static let defaultValue: Int = 0
 }
 struct ColEndKey: LayoutValueKey {
-    static let defaultValue: Int = 1
+    nonisolated static let defaultValue: Int = 1
 }
 struct RowStartKey: LayoutValueKey {
-    static let defaultValue: Int = 0
+    nonisolated static let defaultValue: Int = 0
 }
 struct RowEndKey: LayoutValueKey {
-    static let defaultValue: Int = 1
+    nonisolated static let defaultValue: Int = 1
 }
 
 extension View {
@@ -210,35 +200,44 @@ struct Masonry: Layout {
 
 struct CardItem: Identifiable {
     let id = UUID()
+    let key: String
     let title: String?
     let icon: String?
-    let colStart: Int
-    let colEnd: Int
-    let rowStart: Int
-    let rowEnd: Int
+    var colStart: Int
+    var colEnd: Int
+    var rowStart: Int
+    var rowEnd: Int
+    let minColSpan: Int
+    let minRowSpan: Int
     let ignoreEdgePadding: Bool
     let ignoreStandardArrangements: Bool
     let settingsView: AnyView?
-    let content: AnyView
+    let content: AnyView?
     
     init<Content: View, SettingsContent: View>(
+        key: String,
         title: String? = nil,
         icon: String? = nil,
         colStart: Int,
         colEnd: Int,
         rowStart: Int,
         rowEnd: Int,
+        minColSpan: Int = 1,
+        minRowSpan: Int = 1,
         ignoreEdgePadding: Bool = false,
         ignoreStandardArrangements: Bool = false,
         @ViewBuilder settingsView: () -> SettingsContent = { EmptyView() },
         @ViewBuilder content: () -> Content
     ) {
+        self.key = key
         self.title = title
         self.icon = icon
         self.colStart = colStart
         self.colEnd = colEnd
         self.rowStart = rowStart
         self.rowEnd = rowEnd
+        self.minColSpan = max(1, minColSpan)
+        self.minRowSpan = max(1, minRowSpan)
         self.ignoreEdgePadding = ignoreEdgePadding
         self.ignoreStandardArrangements = ignoreStandardArrangements
         self.settingsView = AnyView(settingsView())
@@ -247,50 +246,62 @@ struct CardItem: Identifiable {
 }
 
 struct ContentView: View {
-    @State private var isHovered = false
+    @AppStorage("air_theme") private var theme: Theme = .light
+    @AppStorage("air_two_settings_buttons") private var twoButtons: Bool = false
     
+    @ObservedObject private var layoutStore = CardLayoutStore.shared
     @Environment(\.openWindow) private var openWindow
-    
-    let isVisible: Bool = true
-    
+
     let columns = 20
     let rows = 14
-    
+
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottomTrailing) {
-                Color.beige.ignoresSafeArea()
-                
-                Masonry(columns: columns, rows: rows, spacing: 10) {
-                    ForEach(appCards) { card in
-                        card.content
+            GeometryReader { geo in
+                let cardWidth = (geo.size.width - 20 - CGFloat(columns - 1) * 10) / CGFloat(columns)
+                let cardHeight = (geo.size.height - 26 - CGFloat(rows - 1) * 10) / CGFloat(rows)
+
+                ZStack(alignment: .bottomTrailing) {
+                    theme.backgroundColor.ignoresSafeArea()
+
+                    Masonry(columns: columns, rows: rows, spacing: 10) {
+                        ForEach(layoutStore.effectiveCards(from: appCards)) { card in
+                            ZStack {
+                                card.content
+
+                                if layoutStore.isEditMode && !CardLayoutStore.fixedKeys.contains(card.key) {
+                                    EditHandleOverlay(card: card, cardWidth: cardWidth, cardHeight: cardHeight, columns: columns, rows: rows)
+//                                        .transition(.opacity)
+                                }
+                            }
                             .if(!card.ignoreEdgePadding) { view in
                                 view.edgePadding(colStart: card.colStart, colEnd: card.colEnd, maxColumns: columns)
                             }
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
                             .gridColumn(card.colStart, card.colEnd)
                             .gridRow(card.rowStart, card.rowEnd)
+                        }
+                    }
+                    .padding(10)
+                    .padding(.bottom, 16)
+                    
+                    if twoButtons {
+                        SettingsButton()
+                            .padding(2)
                     }
                 }
-                .padding(10)
-                .padding(.bottom, 16)
-                
-                SettingsButton()
-                    .padding(10)
+                .coordinateSpace(name: EditGrid.coordinateSpaceName)
             }
         }
     }
-    
+
     private func SettingsButton() -> some View {
-        Button {
-            openWindow(id: "settings-window")
-        } label: {
+        Button { openWindow(id: "settings-window") } label: {
             Image(systemName: "gearshape.fill")
                 .font(.title)
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
                 .padding(6)
-                .background(Color.widget)
-                .clipShape(Circle())
+                .background(.ultraThinMaterial, in: Circle())
         }
         .buttonStyle(.airButton)
     }

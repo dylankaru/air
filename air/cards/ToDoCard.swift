@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import UniformTypeIdentifiers
 
 struct ToDoItem: Identifiable, Equatable, Codable {
     var id = UUID()
@@ -14,28 +15,38 @@ struct ToDoItem: Identifiable, Equatable, Codable {
 }
 
 struct ToDoCard: View {
-
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     let title = "Things to do:"
     private let filename = "todos.json"
 
     @State private var items: [ToDoItem] = []
     @State private var newTask: String = ""
+    @State private var draggedItem: ToDoItem?
     @FocusState private var fieldIsFocused: Bool
 
     var body: some View {
         Card {
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .foregroundStyle(Color.middark)
+                    .foregroundColor(theme.textColour)
                     .font(.headline)
-
+                
                 ForEach($items) { $item in
-                    ToDoRow(item: $item) {
+                    ToDoRow(item: $item, draggedItem: $draggedItem) {
                         withAnimation(.easeOut(duration: 0.15)) {
                             items.removeAll { $0.id == item.id }
                         }
                         saveItems()
                     }
+                    .onDrop(
+                        of: [UTType.text],
+                        delegate: ToDoDropDelegate(
+                            item: item,
+                            items: $items,
+                            draggedItem: $draggedItem
+                        )
+                    )
                 }
 
                 addTaskRow
@@ -58,14 +69,14 @@ struct ToDoCard: View {
         HStack(spacing: 8) {
             Image(systemName: "plus")
                 .font(.subheadline)
-                .foregroundStyle(Color.middark)
+                .foregroundColor(theme.textColour)
 
-            TextField("Let me know what's on ur mind", text: $newTask)
+            TextField("I'm listening :)", text: $newTask)
                 .textFieldStyle(.plain)
-                .foregroundColor(.middark)
                 .focused($fieldIsFocused)
                 .onSubmit(addTask)
                 .submitLabel(.done)
+                .foregroundColor(theme.textColour)
         }
         .contentShape(Rectangle())
         .onTapGesture { fieldIsFocused = true }
@@ -91,13 +102,21 @@ struct ToDoCard: View {
 }
 
 private struct ToDoRow: View {
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @Binding var item: ToDoItem
+    @Binding var draggedItem: ToDoItem?
     var onDelete: () -> Void
 
     @State private var isHovering = false
+    @State private var isEditing = false
+    @State private var editText = ""
+
+    @FocusState private var fieldIsFocused: Bool
 
     var body: some View {
         HStack(spacing: 8) {
+            
             Button {
                 withAnimation(.easeOut(duration: 0.15)) {
                     item.isDone.toggle()
@@ -105,22 +124,39 @@ private struct ToDoRow: View {
             } label: {
                 Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
                     .font(.subheadline)
-                    .foregroundStyle(item.isDone ? Color.accentColor : Color.middark.opacity(0.5))
+                    .foregroundColor(item.isDone ? .accentColor : theme.textColour.opacity(0.5))
             }
             .buttonStyle(.plain)
-
-            Text(item.text)
-                .font(.subheadline)
-                .foregroundStyle(item.isDone ? Color.middark.opacity(0.4) : Color.middark)
-                .strikethrough(item.isDone, color: Color.middark.opacity(0.4))
-                .lineLimit(1)
-
+            
+            if isEditing {
+                TextField("", text: $editText)
+                    .textFieldStyle(.plain)
+                    .font(.subheadline)
+                    .foregroundColor(theme.textColour)
+                    .focused($fieldIsFocused)
+                    .onSubmit {
+                        finishEditing()
+                    }
+                    .onExitCommand {
+                        cancelEditing()
+                    }
+            } else {
+                Text(item.text)
+                    .font(.subheadline)
+                    .foregroundColor(item.isDone ? theme.textColour.opacity(0.4) : theme.textColour)
+                    .strikethrough(item.isDone, color: theme.textColour.opacity(0.4))
+                    .lineLimit(1)
+                    .onTapGesture(count: 2) {
+                        startEditing()
+                    }
+            }
+            
             Spacer(minLength: 0)
-
+            
             Button(action: onDelete) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.subheadline)
-                    .foregroundStyle(Color.middark.opacity(0.5))
+                    .foregroundColor(theme.textColour.opacity(0.5))
             }
             .buttonStyle(.plain)
             .opacity(isHovering ? 1 : 0)
@@ -131,5 +167,71 @@ private struct ToDoRow: View {
                 isHovering = hovering
             }
         }
+        .draggable(item.id.uuidString) {
+//            draggedItem = item
+            return Text(item.text)
+        }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    draggedItem = item
+                }
+        )
+    }
+
+    private func startEditing() {
+        editText = item.text
+        isEditing = true
+
+        DispatchQueue.main.async {
+            fieldIsFocused = true
+        }
+    }
+
+    private func finishEditing() {
+        let trimmed = editText.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !trimmed.isEmpty else {
+            cancelEditing()
+            return
+        }
+
+        item.text = trimmed
+        isEditing = false
+        fieldIsFocused = false
+    }
+
+    private func cancelEditing() {
+        isEditing = false
+        fieldIsFocused = false
+    }
+}
+
+private struct ToDoDropDelegate: DropDelegate {
+    let item: ToDoItem
+    @Binding var items: [ToDoItem]
+    @Binding var draggedItem: ToDoItem?
+
+    func dropEntered(info: DropInfo) {
+        guard let draggedItem else { return }
+        guard draggedItem != item else { return }
+
+        guard let fromIndex = items.firstIndex(of: draggedItem),
+              let toIndex = items.firstIndex(of: item)
+        else {
+            return
+        }
+
+        withAnimation(.easeOut(duration: 0.15)) {
+            items.move(
+                fromOffsets: IndexSet(integer: fromIndex),
+                toOffset: toIndex > fromIndex ? toIndex + 1 : toIndex
+            )
+        }
+    }
+
+    func performDrop(info: DropInfo) -> Bool {
+        draggedItem = nil
+        return true
     }
 }

@@ -10,6 +10,8 @@ import AppKit
 
 struct GreetingCard: View {
     @AppStorage("air_username") private var userName: String = "Friend"
+    @AppStorage("air_theme") private var theme: Theme = .light
+    
     @State private var greetingText: String = ""
     @State private var isLoading: Bool = true
     @State private var dynamicSubtitle: String = ""
@@ -34,16 +36,16 @@ struct GreetingCard: View {
                 } else if !greetingText.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greetingText)
-                            .font(.custom("ClashDisplayVariable-Bold", size: 55))
+                            .font(.custom("ClashDisplayVariable-Bold", size: 50))
                             .lineLimit(1)
-                            .minimumScaleFactor(0.2)
+                            .minimumScaleFactor(0.175)
                             .allowsTightening(true)
-                            .foregroundColor(.middark)
+                            .foregroundColor(theme.textColour)
                         
                         Text(dynamicSubtitle)
                             .font(.system(size: 14, design: .rounded))
                             .fontWeight(.medium)
-                            .foregroundColor(Color.middark)
+                            .foregroundColor(theme.textColour)
                             .lineLimit(1)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)

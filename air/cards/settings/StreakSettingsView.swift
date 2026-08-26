@@ -107,7 +107,7 @@ struct StreakSettingsView: View {
                             Text("Target Unit")
                             Spacer()
                             Text("\(targetUnit)")
-                                .foregroundStyle(.secondary)
+                                .foregroundColor(.secondary)
                                 .monospacedDigit()
                         }
                     }
@@ -126,7 +126,7 @@ struct StreakSettingsView: View {
                         Text("Completed Units")
                         Spacer()
                         Text("\(completedUnits)")
-                            .foregroundStyle(.secondary)
+                            .foregroundColor(.secondary)
                             .monospacedDigit()
                     }
                 }
