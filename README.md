@@ -1,5 +1,7 @@
 # air
-air is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance.
+Every morning I was bouncing between five apps just to check the weather and headlines before actually starting my day, and I didn't even have a to-do list. `air` puts all of it in one glance so you don't have to.
+
+`air` is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance.
 
 ![air dashboard](screenshots/dashboard.png)
 
@@ -23,18 +25,27 @@ Cards are laid out on a grid and has settings, so you can configure the dashboar
   - You can wire your own api, I just made my own for testing and it will most likely be up indefinetely
 ## Get Started
 ### Requirements
+- Apple Silicon (M-series) Mac
 - macOS Tahoe (26)
   - air uses liquid glass elements
 - Associated Xcode
 ### Run it
+
+Grab the latest `.dmg` from [Releases](https://github.com/dylankaru/air/releases), open it, and drag `air` into Applications.
+> Note: since this isn't notarised, macOS Gatekeeper will warn on first launch, right-click the app -> Open to bypass it.
+
+**OR**
+
 1. Clone the repo
 ```bash
 git clone https://github.com/dylankaru/air.git
 cd air
 ```
-2. Run `brew install nowplaying-cli` (this is an external package that I didn't make but air needs to use in order for part of the `Audio Player` card to function as intended)
-3. Open `air.xcodeproj` in Xcode
-4. Build and run (`⌘R`)
+2. Open `air.xcodeproj` in Xcode
+3. Build and run (`⌘R`)
+
+> Note: The Audio Player's "macOS Now Playing" source uses a bundled copy of `nowplaying-cli` — no separate install needed.
+
 ## Project Structure
 ```
 air/
@@ -46,9 +57,10 @@ air/
 │   ├── utils/                # Shared managers (audio, JSON caching, API clients)
 │   │   └── api/              # Networking layer for weather/news/speed test
 │   └── Assets.xcassets/      # Icons, images, fonts
-├── airTests/                 # Unit tests
-└── airUITests/               # UI tests`
+├── airTests/                 # Unit tests (i didnt really use this)
+└── airUITests/               # UI tests (this too)
 ```
+
 ## Making Your Own Card
 Designing your own card is simple as it only requires basic SwiftUI knowledge.
 1. Create the view. For organisational sake, add it under `air/cards` , for example `MyCard.swift`. Wrap your content in the shared `Card` container so that it gets the standard corner radius, background, and can be rendered by the masonry:

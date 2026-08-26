@@ -54,12 +54,12 @@ final class MediaRemoteBridge {
 
             defer { self.isFetching = false }
 
-            let bundledPath = Bundle.main.path(forResource: "nowplaying-cli", ofType: nil)
-            let fallbackPaths = [
+            let bundledPath = Bundle.main.bundleURL.appendingPathComponent("Contents/MacOS/nowplaying-cli").path
+            let fallbackPaths = [ // Don't think it should ever have to fall back since its bundled now
                 bundledPath,
                 "/opt/homebrew/bin/nowplaying-cli",
                 "/usr/local/bin/nowplaying-cli"
-            ].compactMap { $0 }
+            ]
 
             guard let executablePath = fallbackPaths.first(where: { FileManager.default.fileExists(atPath: $0) }) else {
                 DispatchQueue.main.async { completion(nil) }

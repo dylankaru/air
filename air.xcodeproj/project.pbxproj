@@ -23,15 +23,41 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		74CEB12E303E840300A9A48A /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			dstPath = "";
+			dstSubfolder = Executables;
+			files = (
+			);
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		74CEB125303E6D0F00A9A48A /* air.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = air.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		74E6746E30107C0800E554E9 /* airTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = airTests.xctest; path = "/Users/dylankaru/Documents/air-app/build/Debug/air.app/Contents/PlugIns/airTests.xctest"; sourceTree = "<absolute>"; };
 		74E6747830107C0800E554E9 /* airUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = airUITests.xctest; path = "/Users/dylankaru/Documents/air-app/build/Debug/airUITests-Runner.app/Contents/PlugIns/airUITests.xctest"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+		74CEB137303E856400A9A48A /* Exceptions for "air" folder in "Copy Files" phase from "air" target */ = {
+			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
+			attributesByRelativePath = {
+				"resources/bin/nowplaying-cli" = (CodeSignOnCopy, );
+			};
+			buildPhase = 74CEB12E303E840300A9A48A /* CopyFiles */;
+			membershipExceptions = (
+				"resources/bin/nowplaying-cli",
+			);
+		};
+/* End PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		74E6746130107C0600E554E9 /* air */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				74CEB137303E856400A9A48A /* Exceptions for "air" folder in "Copy Files" phase from "air" target */,
+			);
 			path = air;
 			sourceTree = "<group>";
 		};
@@ -86,6 +112,8 @@
 				74E6745B30107C0600E554E9 /* Sources */,
 				74E6745C30107C0600E554E9 /* Frameworks */,
 				74E6745D30107C0600E554E9 /* Resources */,
+				74CEB12E303E840300A9A48A /* CopyFiles */,
+				74CEB138303E857A00A9A48A /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -200,6 +228,17 @@
 			);
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		74CEB138303E857A00A9A48A /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			shellPath = /bin/sh;
+			shellScript = (
+				"chmod +x \"${BUILT_PRODUCTS_DIR}/${EXECUTABLE_FOLDER_PATH}/nowplaying-cli\"",
+				"",
+			);
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		74E6745B30107C0600E554E9 /* Sources */ = {
