@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct WeatherSettingsView: View {
+struct WeatherSettingsPanel: View {
     @AppStorage("weather_selected_metrics") private var selectedMetrics: [WeatherMetric] = [
         .windSpeed,
         .humidity,

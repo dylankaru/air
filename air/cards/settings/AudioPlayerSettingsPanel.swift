@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct AudioPlayerSettingsView: View {
+struct AudioPlayerSettingsPanel: View {
     @AppStorage("audio_player_source") private var audioSourceRaw: String = AudioSourceSetting.spotify.rawValue
     @AppStorage("audio_show_artwork") private var showArtwork: Bool = true
 

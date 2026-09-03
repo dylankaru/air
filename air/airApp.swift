@@ -22,6 +22,9 @@ struct airApp: App {
                         window.center()
                     }
                 }
+                .onDisappear {
+                    NSApplication.shared.terminate(nil)
+                }
         }
         .windowResizability(.contentSize)
         .windowStyle(.hiddenTitleBar)

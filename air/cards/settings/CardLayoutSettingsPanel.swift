@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct CardLayoutSettingsView: View {
+struct CardLayoutSettingsPanel: View {
     @ObservedObject private var layoutStore = CardLayoutStore.shared
     @State private var conflicts: [String: String] = [:]
 

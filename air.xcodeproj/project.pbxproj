@@ -34,9 +34,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		74780AA1304300F300A51893 /* airTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = airTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		74780AA2304300F300A51893 /* airUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = airUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		74CEB125303E6D0F00A9A48A /* air.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = air.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		74E6746E30107C0800E554E9 /* airTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = airTests.xctest; path = "/Users/dylankaru/Documents/air-app/build/Debug/air.app/Contents/PlugIns/airTests.xctest"; sourceTree = "<absolute>"; };
-		74E6747830107C0800E554E9 /* airUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = airUITests.xctest; path = "/Users/dylankaru/Documents/air-app/build/Debug/airUITests-Runner.app/Contents/PlugIns/airUITests.xctest"; sourceTree = "<absolute>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet section */
@@ -99,6 +99,8 @@
 				74E6747130107C0800E554E9 /* airTests */,
 				74E6747B30107C0800E554E9 /* airUITests */,
 				74CEB125303E6D0F00A9A48A /* air.app */,
+				74780AA1304300F300A51893 /* airTests.xctest */,
+				74780AA2304300F300A51893 /* airUITests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
@@ -143,7 +145,7 @@
 			);
 			name = airTests;
 			productName = airTests;
-			productReference = 74E6746E30107C0800E554E9 /* airTests.xctest */;
+			productReference = 74780AA1304300F300A51893 /* airTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		74E6747730107C0800E554E9 /* airUITests */ = {
@@ -164,7 +166,7 @@
 			);
 			name = airUITests;
 			productName = airUITests;
-			productReference = 74E6747830107C0800E554E9 /* airUITests.xctest */;
+			productReference = 74780AA2304300F300A51893 /* airUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -401,7 +403,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DJ6YW7VLP3;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -419,7 +421,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = au.com.destinyorg.air;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -448,7 +450,7 @@
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = DJ6YW7VLP3;
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -466,7 +468,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MACOSX_DEPLOYMENT_TARGET = 26.6;
+				MACOSX_DEPLOYMENT_TARGET = "$(RECOMMENDED_MACOSX_DEPLOYMENT_TARGET)";
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = au.com.destinyorg.air;
 				PRODUCT_NAME = "$(TARGET_NAME)";

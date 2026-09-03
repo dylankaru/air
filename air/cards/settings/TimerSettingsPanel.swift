@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TimerSettingsView: View {
+struct TimerSettingsPanel: View {
     @AppStorage("timer_work_duration") private var workDuration: Int = TimerMode.work.defaultDuration
     @AppStorage("timer_rest_duration") private var restDuration: Int = TimerMode.rest.defaultDuration
     @AppStorage("timer_off_duration") private var offDuration: Int = TimerMode.off.defaultDuration

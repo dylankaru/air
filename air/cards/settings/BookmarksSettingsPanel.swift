@@ -31,7 +31,7 @@ struct BookmarkStorage {
     }
 }
 
-struct BookmarksSettingsView: View {
+struct BookmarksSettingsPanel: View {
     @State private var bookmarks = BookmarkStorage.load()
 
     var body: some View {

@@ -30,7 +30,7 @@ struct CalendarCard: View {
                                 eventRow(for: event)
 
                                 if event.eventIdentifier != upcomingEvents.last?.eventIdentifier {
-                                    Divider()
+                                    Divider().opacity(0)
                                 }
                             }
                         }

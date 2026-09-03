@@ -14,6 +14,7 @@ enum Theme: String, Encodable, CaseIterable {
     case brown
     case blue
     case pink
+    case velvet
     
     var backgroundColor: Color {
         switch self {
@@ -23,6 +24,7 @@ enum Theme: String, Encodable, CaseIterable {
         case .brown: return Color(hex: 0xD8B686)
         case .blue: return Color(hex: 0x86B2D8)
         case .pink: return Color(hex: 0xFFEAEE)
+        case .velvet: return Color(hex: 0x9C2E2C)
         }
     }
     
@@ -34,6 +36,7 @@ enum Theme: String, Encodable, CaseIterable {
         case .brown: return Color(hex: 0xF3DEB0)
         case .blue: return Color(hex: 0xBAD4EB)
         case .pink: return Color(hex: 0xFFFFFF)
+        case .velvet: return Color(hex: 0xBA4F4E)
         }
     }
     
@@ -45,24 +48,24 @@ enum Theme: String, Encodable, CaseIterable {
         case .brown: return Color(hex: 0x331D0E)
         case .blue: return Color(hex: 0x0E2B45)
         case .pink: return Color(hex: 0x603F4B)
+        case .velvet: return Color(hex: 0xD5DDCC)
+        }
+    }
+    
+    var textVariety: TextVariety {
+        switch self {
+        case .light: return TextVariety.dark
+        case .dark: return TextVariety.light
+        case .green: return TextVariety.dark
+        case .brown: return TextVariety.dark
+        case .blue: return TextVariety.dark
+        case .pink: return TextVariety.dark
+        case .velvet: return TextVariety.light
         }
     }
 }
 
-extension Color {
-    init(hex: UInt, opacity: Double = 1.0) {
-        self.init(
-            .sRGB,
-            red: Double((hex >> 16) & 0xff) / 255,
-            green: Double((hex >> 08) & 0xff) / 255,
-            blue: Double((hex >> 00) & 0xff) / 255,
-            opacity: opacity
-        )
-    }
-//    
-//    static let beige = Color(hex: 0xfffeeb)
-////    static let background = ThemesManager.setBackgroundColour()
-//    static let widget = Color(hex: 0xF2E5C9)
-//    static let middark = Color(hex: 0x1D1D1D)
-//    static let test = Color(hex: 0xD4E0D2)
+enum TextVariety: String, Codable, CaseIterable {
+    case dark
+    case light
 }

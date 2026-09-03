@@ -335,7 +335,7 @@ struct SystemStatsCard: View {
                              display: String(format: "%.0f%%", monitor.gpuUsage), tint: color(for: monitor.gpuUsage / 100))
                 }
 
-                Divider().opacity(0.6)
+                Divider().opacity(0)
 
                 VStack(spacing: 10) {
                     metricBar(icon: "memorychip", label: "Memory",
@@ -349,7 +349,7 @@ struct SystemStatsCard: View {
                               display: String(format: "%.0f GB free", monitor.diskFreeGB))
                 }
 
-                Divider().opacity(0.6)
+                Divider().opacity(0)
 
                 FlowLayout(spacing: 8) {
                     if let battery = monitor.batteryPercent {
@@ -362,7 +362,7 @@ struct SystemStatsCard: View {
                 }
 
                 if !monitor.topApps.isEmpty {
-                    Divider().opacity(0.6)
+                    Divider().opacity(0)
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text("TOP APPS")
@@ -441,7 +441,7 @@ struct SystemStatsCard: View {
         .padding(.horizontal, 6)
         .padding(.vertical, 3)
         .fixedSize()
-        .glassEffect(.regular.interactive(), in: Capsule())
+        .conditionalGlassEffect(in: Capsule())
     }
 
     private func color(for value: Double) -> Color {

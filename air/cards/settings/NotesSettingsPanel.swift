@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NotesSettingsView: View {
+struct NotesSettingsPanel: View {
     @AppStorage("notes_pages_data") private var pagesData: Data = Data()
     @State private var pages: [NotePage] = []
     @FocusState private var focusedPageID: UUID?

@@ -8,7 +8,7 @@
 import SwiftUI
 import ServiceManagement
 
-struct GeneralSettingsView: View {
+struct GeneralSettingsPanel: View {
     @AppStorage("air_username") private var userName: String = "Friend"
     @AppStorage("air_theme") private var theme: Theme = .light
     @AppStorage("air_boot_on_start") private var autoStart: Bool = SMAppService.mainApp.status == .enabled

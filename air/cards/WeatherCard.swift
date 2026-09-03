@@ -393,7 +393,6 @@ struct WeatherCard: View {
             Text("Couldn't load weather")
                 .font(.caption)
                 .foregroundColor(theme.textColour)
-                .multilineTextAlignment(.center)
         }
         .foregroundColor(theme.textColour)
     }

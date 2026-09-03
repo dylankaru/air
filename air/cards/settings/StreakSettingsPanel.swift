@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct StreakSettingsView: View {
+struct StreakSettingsPanel: View {
     @AppStorage("streak_primary_colour") private var primaryHex: String = "#3498DB"
     @AppStorage("streak_secondary_colour") private var secondaryHex: String = "#2ECC71"
 

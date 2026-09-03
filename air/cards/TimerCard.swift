@@ -87,7 +87,7 @@ struct TimerCard: View {
                         .padding(.trailing, 4)
                     }
                     .padding(3)
-                    .background(theme.textColour, in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                    .background(theme.textVariety == TextVariety.dark ? theme.textColour : theme.textColour.opacity(0.4) , in: RoundedRectangle(cornerRadius: 10, style: .continuous))
                     .padding(.top, 6)
                     
                     ZStack {
@@ -122,25 +122,22 @@ struct TimerCard: View {
                         Button(action: toggleTimer) {
                             Image(systemName: isRunning ? "pause.fill" : "play.fill")
                                 .font(.system(size: 13, weight: .medium))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 7)
+                                .frame(maxWidth: 80)
+                                .padding(.vertical, 1)
                                 .foregroundColor(theme.textColour)
-                                .background(Color.primary.opacity(0.08))
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
-                        .buttonStyle(.plain)
+                        .conditionalGlassButton()
                         
                         Button(action: resetTimer) {
                             Image(systemName: "arrow.counterclockwise")
                                 .font(.system(size: 13, weight: .medium))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 7)
+                                .frame(maxWidth: 80)
+                                .padding(.vertical, 1)
                                 .foregroundColor(theme.textColour)
-                                .background(Color.primary.opacity(0.08))
-                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
-                        .buttonStyle(.plain)
+                        .conditionalGlassButton()
                     }
+                    .padding(.top, 5)
                 } else {
                     HStack(spacing: 8) {
                         Picker("Timer Mode", selection: $selectedMode) {
@@ -205,28 +202,28 @@ struct TimerCard: View {
                         Button(action: toggleTimer) {
                             Image(systemName: isRunning ? "pause.fill" : "play.fill")
                                 .font(.system(size: 13, weight: .medium))
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: 50)
                                 .padding(.vertical, 7)
                                 .foregroundColor(theme.textColour)
                                 .background(Color.primary.opacity(0.08))
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
-                        .buttonStyle(.plain)
+                        .conditionalGlassButton()
                         
                         Button(action: resetTimer) {
                             Image(systemName: "arrow.counterclockwise")
                                 .font(.system(size: 13, weight: .medium))
-                                .frame(maxWidth: .infinity)
+                                .frame(maxWidth: 80)
                                 .padding(.vertical, 7)
                                 .foregroundColor(theme.textColour)
                                 .background(Color.primary.opacity(0.08))
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         }
-                        .buttonStyle(.plain)
+                        .conditionalGlassButton()
                     }
                 }
-                }
-//            .padding(6)
+            }
+            .padding(6)
             .frame(maxWidth: .infinity)
             .onAppear {
                 totalDuration = savedTotalDuration

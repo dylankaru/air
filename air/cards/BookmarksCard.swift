@@ -62,7 +62,7 @@ struct BookmarksCard: View {
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .clipShape(RoundedRectangle(cornerRadius: 25, style: .continuous))
                     }
-                    .buttonStyle(.glass)
+                    .conditionalGlassButton()
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)

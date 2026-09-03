@@ -23,9 +23,9 @@ struct GreetingCard: View {
         return formatter.string(from: Date())
     }
 
-    let morningList  = ["Ready to make today count?", "What's your big plan chief?", "What a day to be alive...", "Go get 'em tiger!"]
-    let arvoList     = ["Hope your day is going well", "We in high gear yet?", "Look at you, what a productivity diva!", "Get back to work bro."]
-    let eveningList  = ["Time to wind down.", "You rocked today!", "It's getting dark.", "Wrap it up, sleep's important too you know..."]
+    let morningList  = ["Ready to make today count?", "What's your big plan chief?", "It's a great day for a great day.", "Go get 'em tiger!"]
+    let arvoList     = ["Hope your day is going well", "We in high gear yet?", "I'm impressed!", "Your work will not finish itself."]
+    let eveningList  = ["Time to wind down.", "You rocked today!", "It's getting dark.", "Wrap it up, sleep's important too you know."]
     let midnightList = ["Burning the midnight oil?", "What kept you up tonight?", "It's a bit... too dark out, right?", "Boi go to sleep."]
 
     var body: some View {
@@ -36,9 +36,9 @@ struct GreetingCard: View {
                 } else if !greetingText.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(greetingText)
-                            .font(.custom("ClashDisplayVariable-Bold", size: 50))
+                            .font(.custom("ClashDisplayVariable-Bold", size: 28))
                             .lineLimit(1)
-                            .minimumScaleFactor(0.175)
+                            .minimumScaleFactor(0.4)
                             .allowsTightening(true)
                             .foregroundColor(theme.textColour)
                         

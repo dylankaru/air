@@ -48,9 +48,3 @@ struct AnimatedButtonStyle: ButtonStyle {
         return 0
     }
 }
-
-extension ButtonStyle where Self == AnimatedButtonStyle {
-    static var airButton: AnimatedButtonStyle {
-        AnimatedButtonStyle()
-    }
-}

@@ -17,7 +17,7 @@ struct AboutView: View {
             Text("air")
                 .font(.title.bold())
             
-            Text("Version 1.0")
+            Text("Version 1.1")
                 .font(.caption)
                 .foregroundStyle(.secondary)
             

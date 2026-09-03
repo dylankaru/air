@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct ClipboardSettingsView: View {
+struct ClipboardSettingsPanel: View {
     @State private var showClearCacheDialog: Bool = false
     
     var body: some View {

@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct SpeedTestSettingsView: View {
+struct SpeedTestSettingsPanel: View {
     @AppStorage("speed_test_do") private var doSpeedTest: Bool = true
     
     var body: some View {

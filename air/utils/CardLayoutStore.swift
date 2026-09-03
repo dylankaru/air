@@ -129,8 +129,8 @@ class CardLayoutStore: ObservableObject {
         guard overlapping.count == 1, let blocker = overlapping.first else { return }
         let blockerOverride = backup[blocker.key] ?? override(for: blocker)
         let blockerSpanMatches =
-            (blockerOverride.colEnd - blockerOverride.colStart == colSpan) &&
-            (blockerOverride.rowEnd - blockerOverride.rowStart == rowSpan)
+        (blockerOverride.colEnd - blockerOverride.colStart == colSpan) &&
+        (blockerOverride.rowEnd - blockerOverride.rowStart == rowSpan)
         guard blockerSpanMatches else { return }
         
         var swapped = blockerOverride
@@ -184,6 +184,17 @@ class CardLayoutStore: ObservableObject {
         overrides = backup
         tryUpdateLinked(card: card, in: cards, commit: false) {
             var u = $0; u.colEnd += bestCol; u.rowEnd += bestRow; return u
+        }
+    }
+    
+    func setEditMode(_ value: Bool) {
+        DispatchQueue.main.async { [weak self] in
+            withAnimation(.easeInOut(duration: 0.5)) {
+                self?.isEditMode = value
+                if !value {
+                    self?.cancelInteractiveEdit()
+                }
+            }
         }
     }
     

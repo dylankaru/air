@@ -154,7 +154,7 @@ struct ClipboardCardRow: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
-        .background(theme.textColour.opacity(0.8))
+        .background(theme.textVariety == TextVariety.dark ? theme.textColour.opacity(0.8) : theme.textColour.opacity(0.4))
         .cornerRadius(8)
     }
 }

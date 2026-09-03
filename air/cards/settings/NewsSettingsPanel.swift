@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct NewsSettingsView: View {
+struct NewsSettingsPanel: View {
     @AppStorage("news_user_prefs") private var newsPreference: String = "news today"
     @AppStorage("news_too_distracting") private var turnOffNews: Bool = false
     

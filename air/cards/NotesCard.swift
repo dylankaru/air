@@ -8,109 +8,132 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-struct ToDoItem: Identifiable, Equatable, Codable {
+struct NoteItem: Identifiable, Equatable, Codable {
     var id = UUID()
     var text: String
     var isDone: Bool = false
+    var indentLevel: Int = 0
+}
+
+struct NotePage: Identifiable, Codable, Equatable {
+    var id = UUID()
+    var title: String
+    var content: String = ""
 }
 
 struct NotesCard: View {
+    @AppStorage("notes_pages_data") private var pagesData: Data = Data()
     @AppStorage("air_theme") private var theme: Theme = .light
     
-    @State private var itemsByPage: [Int: [ToDoItem]] = [:]
+    @State private var itemsByPage: [Int: [NoteItem]] = [:]
     @State private var newTask: String = ""
-    @State private var draggedItem: ToDoItem?
+    @State private var draggedItem: NoteItem?
     
+    @State private var pages: [NotePage] = []
     @State private var currentPageIndex: Int = 0
-    private let totalPages: Int = 3
     
     @FocusState private var fieldIsFocused: Bool
     
-    let title = ["Things to do:", "Quick notes:", "Others:"]
     private let filename = "todos.json"
     
-    private var currentItems: [ToDoItem] {
+    private var currentItems: [NoteItem] {
         get { itemsByPage[currentPageIndex] ?? [] }
         set { itemsByPage[currentPageIndex] = newValue }
     }
     
     var body: some View {
         Card {
-            VStack(alignment: .leading, spacing: 10) {
-                HStack {
-                    Text(title[currentPageIndex])
-                        .foregroundColor(theme.textColour)
-                        .font(.headline)
-                        .padding(.leading, 10)
-                        .backgroundStyle(Color.clear)
-                    
-                    Spacer()
-                    
-                    HStack(spacing: 4) {
-                        Text("\(currentPageIndex + 1)/\(totalPages)")
-                            .font(.caption)
-                            .foregroundColor(theme.textColour.opacity(0.6))
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .glassEffect(.regular.interactive())
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                currentPageIndex = (currentPageIndex - 1 + totalPages) % totalPages
-                            }
-                        } label: {
-                            Image(systemName: "chevron.left")
-                        }
-                        .buttonStyle(.glass)
+            if pages.isEmpty {
+                ContentUnavailableView(
+                    "No Pages",
+                    systemImage: "note.text",
+                    description: Text("Add a page in settings.")
+                )
+            } else {
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Text(pages[safe: currentPageIndex]?.title ?? "Notes")
+                            .foregroundColor(theme.textColour)
+                            .font(.headline)
+                            .padding(.leading, 10)
+                            .backgroundStyle(Color.clear)
                         
-                        Button {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                currentPageIndex = (currentPageIndex + 1) % totalPages
-                            }
-                        } label: {
-                            Image(systemName: "chevron.right")
-                        }
-                        .buttonStyle(.glass)
-                    }
-                    .padding(.trailing, 10)
-                }
-                .padding(.top, 10)
-                
-                ScrollView {
-                    VStack(alignment: .leading, spacing: 8) {
+                        Spacer()
                         
-                        ForEach(currentItems) { item in
-                            ToDoRow(
-                                item: binding(for: item),
-                                draggedItem: $draggedItem
-                            ) {
-                                withAnimation(.easeOut(duration: 0.15)) {
-                                    var list = itemsByPage[currentPageIndex] ?? []
-                                    list.removeAll { $0.id == item.id }
-                                    itemsByPage[currentPageIndex] = list
+                        HStack(spacing: 4) {
+                            Text("\(currentPageIndex + 1)/\(pages.count)")
+                                .font(.caption)
+                                .foregroundColor(theme.textColour.opacity(0.6))
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .conditionalGlassEffect()
+                            
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    guard !pages.isEmpty else { return }
+                                    currentPageIndex = (currentPageIndex - 1 + pages.count) % pages.count
                                 }
-                                saveItems()
+                            } label: {
+                                Image(systemName: "chevron.left")
                             }
-                            .onDrop(
-                                of: [UTType.text],
-                                delegate: ToDoDropDelegate(
-                                    item: item,
-                                    items: bindingForCurrentList(),
-                                    draggedItem: $draggedItem
-                                )
-                            )
+                            .conditionalGlassButton()
+                            
+                            Button {
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    guard !pages.isEmpty else { return }
+                                    currentPageIndex = (currentPageIndex + 1) % pages.count
+                                }
+                            } label: {
+                                Image(systemName: "chevron.right")
+                            }
+                            .conditionalGlassButton()
                         }
-                        
-                        addTaskRow
+                        .padding(.trailing, 10)
                     }
-                    .padding(.leading, 10)
-                    .padding(.bottom, 10)
-                }
-                .scrollIndicators(.hidden)
-                .onAppear(perform: loadItems)
-                .onChange(of: itemsByPage) { _, _ in
-                    saveItems()
+                    .padding(.top, 10)
+                    
+                    ScrollView {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(currentItems) { item in
+                                ToDoRow(
+                                    item: binding(for: item),
+                                    draggedItem: $draggedItem
+                                ) {
+                                    withAnimation(.easeOut(duration: 0.15)) {
+                                        var list = itemsByPage[currentPageIndex] ?? []
+                                        list.removeAll { $0.id == item.id }
+                                        itemsByPage[currentPageIndex] = list
+                                    }
+                                    saveItems()
+                                }
+                                .onDrop(
+                                    of: [UTType.text],
+                                    delegate: ToDoDropDelegate(
+                                        item: item,
+                                        items: bindingForCurrentList(),
+                                        draggedItem: $draggedItem
+                                    )
+                                )
+                            }
+                            
+                            addTaskRow
+                        }
+                        .padding(.leading, 10)
+                        .padding(.bottom, 10)
+                    }
+                    .scrollIndicators(.hidden)
                 }
             }
+        }
+        .onAppear {
+            loadPages()
+            loadItems()
+        }
+        .onChange(of: pagesData) { _, _ in
+            loadPages()
+        }
+        .onChange(of: itemsByPage) { _, _ in
+            saveItems()
         }
     }
     
@@ -137,7 +160,7 @@ struct NotesCard: View {
         
         var list = itemsByPage[currentPageIndex] ?? []
         withAnimation(.easeOut(duration: 0.15)) {
-            list.append(ToDoItem(text: trimmed))
+            list.append(NoteItem(text: trimmed))
         }
         itemsByPage[currentPageIndex] = list
         newTask = ""
@@ -145,8 +168,7 @@ struct NotesCard: View {
         saveItems()
     }
     
-    // FIX 3: Explicit dictionary value assignment for mutations
-    private func binding(for item: ToDoItem) -> Binding<ToDoItem> {
+    private func binding(for item: NoteItem) -> Binding<NoteItem> {
         Binding(
             get: {
                 self.itemsByPage[self.currentPageIndex]?.first(where: { $0.id == item.id }) ?? item
@@ -162,7 +184,7 @@ struct NotesCard: View {
         )
     }
     
-    private func bindingForCurrentList() -> Binding<[ToDoItem]> {
+    private func bindingForCurrentList() -> Binding<[NoteItem]> {
         Binding(
             get: { self.itemsByPage[self.currentPageIndex] ?? [] },
             set: { updatedList in
@@ -172,8 +194,34 @@ struct NotesCard: View {
         )
     }
 
+    private func loadPages() {
+        if let decoded = try? JSONDecoder().decode([NotePage].self, from: pagesData), !decoded.isEmpty {
+            pages = decoded
+        } else {
+            // Default pages if settings haven't been configured yet
+            pages = [
+                NotePage(title: "Things to do:"),
+                NotePage(title: "Quick notes:"),
+                NotePage(title: "Others:")
+            ]
+        }
+        
+        // Clamp current page index if a page was deleted in settings
+        if currentPageIndex >= pages.count {
+            currentPageIndex = max(0, pages.count - 1)
+        }
+    }
+
     private func loadItems() {
-        if let loaded = JSONManager.load([Int: [ToDoItem]].self, from: filename) {
+        if let rawDict = JSONManager.load([String: [NoteItem]].self, from: filename) {
+            var converted: [Int: [NoteItem]] = [:]
+            for (key, value) in rawDict {
+                if let intKey = Int(key) {
+                    converted[intKey] = value
+                }
+            }
+            itemsByPage = converted
+        } else if let loaded = JSONManager.load([Int: [NoteItem]].self, from: filename) {
             itemsByPage = loaded
         } else {
             itemsByPage = [:]
@@ -181,15 +229,19 @@ struct NotesCard: View {
     }
 
     private func saveItems() {
-        try? JSONManager.save(itemsByPage, to: filename)
+        var stringKeyedDict: [String: [NoteItem]] = [:]
+        for (key, value) in itemsByPage {
+            stringKeyedDict[String(key)] = value
+        }
+        try? JSONManager.save(stringKeyedDict, to: filename)
     }
 }
 
 private struct ToDoRow: View {
     @AppStorage("air_theme") private var theme: Theme = .light
     
-    @Binding var item: ToDoItem
-    @Binding var draggedItem: ToDoItem?
+    @Binding var item: NoteItem
+    @Binding var draggedItem: NoteItem?
     var onDelete: () -> Void
 
     @State private var isHovering = false
@@ -219,6 +271,17 @@ private struct ToDoRow: View {
                     .focused($fieldIsFocused)
                     .onSubmit { finishEditing() }
                     .onExitCommand { cancelEditing() }
+                    .onKeyPress(keys: [.tab]) { press in
+                        withAnimation(.spring(response: 0.15, dampingFraction: 0.6)) {
+                            if press.modifiers.contains(.option) {
+                                item.indentLevel = max(0, item.indentLevel - 1)
+                            } else {
+                                item.indentLevel = min(4, item.indentLevel + 1)
+                            }
+                        }
+                        return .handled
+                    }
+            
             } else {
                 Text(item.text)
                     .font(.subheadline)
@@ -254,6 +317,7 @@ private struct ToDoRow: View {
                     draggedItem = item
                 }
         )
+        .padding(.leading, CGFloat(item.indentLevel * 24))
     }
 
     private func startEditing() {
@@ -282,9 +346,9 @@ private struct ToDoRow: View {
 }
 
 private struct ToDoDropDelegate: DropDelegate {
-    let item: ToDoItem
-    @Binding var items: [ToDoItem]
-    @Binding var draggedItem: ToDoItem?
+    let item: NoteItem
+    @Binding var items: [NoteItem]
+    @Binding var draggedItem: NoteItem?
 
     func dropEntered(info: DropInfo) {
         guard let draggedItem else { return }

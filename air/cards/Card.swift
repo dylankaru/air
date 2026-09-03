@@ -9,7 +9,7 @@ import SwiftUI
 
 struct Card<Content: View>: View {
     @AppStorage("air_theme") private var theme: Theme = .light
-    
+
     let backgroundColor: Color?
     let content: Content
 
@@ -19,13 +19,20 @@ struct Card<Content: View>: View {
     }
 
     var body: some View {
-        content
-            .padding(4)
-            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
-            .background(
-                RoundedRectangle(cornerRadius: 11)
-                    .fill(backgroundColor ?? theme.widgetColour)
-            )
-            .clipped()
+        GeometryReader { geo in
+            ScrollView(.vertical, showsIndicators: false) {
+                content
+                    .frame(minHeight: geo.size.height, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
+            }
+            .scrollBounceBehavior(.basedOnSize)
+        }
+        .padding(4)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .background(
+            RoundedRectangle(cornerRadius: 11)
+                .fill(backgroundColor ?? theme.widgetColour)
+        )
+        .clipped()
     }
 }
