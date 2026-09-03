@@ -11,12 +11,10 @@ struct SpeedTestSettingsView: View {
     @AppStorage("speed_test_do") private var doSpeedTest: Bool = true
     
     var body: some View {
-        Form {
+        SettingsPanel(name: "Speed Test") {
             Section("Speed Test Toggle") {
                 Toggle("Do Speed Test", isOn: $doSpeedTest)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Speed Test Card")
     }
 }

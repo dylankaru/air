@@ -16,7 +16,7 @@ struct AudioPlayerSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "Audio Player") {
             Section {
                 Picker("Audio Source", selection: Binding(
                     get: { audioSource },
@@ -39,8 +39,6 @@ struct AudioPlayerSettingsView: View {
                 Text("Detials")
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Audio Player Card")
     }
 
     private var footerText: some View {

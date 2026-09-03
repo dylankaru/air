@@ -35,7 +35,7 @@ struct BookmarksSettingsView: View {
     @State private var bookmarks = BookmarkStorage.load()
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "Bookmarks") {
             Section(
                 header: Text("Manage Bookmarks"),
                 footer: VStack(alignment: .leading, spacing: 4) {
@@ -64,11 +64,9 @@ struct BookmarksSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
         .onChange(of: bookmarks) { _, newBookmarks in
             BookmarkStorage.save(newBookmarks)
         }
-        .navigationTitle("Bookmarks Card")
     }
 }
 

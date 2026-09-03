@@ -22,7 +22,7 @@ struct WeatherSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "Weather") {
             Section {
                 Text("\(currentUsedSlots) of \(maxSlots) display slots used")
                     .font(.subheadline)
@@ -40,8 +40,6 @@ struct WeatherSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Weather Card")
     }
 
     private func binding(for metric: WeatherMetric) -> Binding<Bool> {

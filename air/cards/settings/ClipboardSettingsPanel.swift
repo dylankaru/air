@@ -7,15 +7,11 @@
 
 import SwiftUI
 
-extension Notification.Name {
-    static let clearClipboardCache = Notification.Name("clearClipboardCache")
-}
-
 struct ClipboardSettingsView: View {
     @State private var showClearCacheDialog: Bool = false
     
     var body: some View {
-        Form {
+        SettingsPanel(name: "Clipboard") {
             Section("Clipboard Cache") {
                 Button ("Clear Clipboard Cache", role: .destructive)
                 {
@@ -36,7 +32,5 @@ struct ClipboardSettingsView: View {
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Clipbard Card")
     }
 }

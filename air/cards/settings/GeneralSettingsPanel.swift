@@ -18,7 +18,7 @@ struct GeneralSettingsView: View {
     @State private var showNameHint: Bool = false
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "General") {
             Section("App Behavior") {
                 Toggle("Launch at Login", isOn: $autoStart)
                     .onChange(of: autoStart) { _, newValue in
@@ -70,8 +70,6 @@ struct GeneralSettingsView: View {
                 .animation(.easeInOut(duration: 0.8), value: showNameHint)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("General")
         .onAppear {
             isNameFocused = false
             autoStart = SMAppService.mainApp.status == .enabled

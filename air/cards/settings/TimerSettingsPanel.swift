@@ -14,7 +14,7 @@ struct TimerSettingsView: View {
     @AppStorage("timer_use_flashy_timer") private var useFlashyTimer: Bool = true
     
     var body: some View {
-        Form {
+        SettingsPanel(name: "Timer") {
             Section("Timer Durations") {
                 Stepper("Focus: \(workMinutes.wrappedValue) min", value: workMinutes, in: 1...180)
                 Stepper("Break: \(restMinutes.wrappedValue) min", value: restMinutes, in: 1...180)
@@ -25,8 +25,6 @@ struct TimerSettingsView: View {
                 Toggle("Enable Numeric Transition", isOn: $useFlashyTimer)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Timer Card")
     }
     
     private var workMinutes: Binding<Int> {

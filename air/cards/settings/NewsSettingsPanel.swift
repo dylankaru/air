@@ -12,7 +12,7 @@ struct NewsSettingsView: View {
     @AppStorage("news_too_distracting") private var turnOffNews: Bool = false
     
     var body: some View {
-        Form {
+        SettingsPanel(name: "News") {
             Section {
                 TextField("e.g. Technology, Australia, NBA", text: $newsPreference)
                     .labelsHidden()
@@ -37,7 +37,5 @@ struct NewsSettingsView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("News Card")
     }
 }

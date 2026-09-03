@@ -15,7 +15,7 @@ struct CardLayoutSettingsView: View {
     private let rows = 14
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "Card Layout") {
             Section("Layout") {
                 Button("Toggle Edit Mode") {
                     withAnimation(.easeInOut(duration: 0.5)) {
@@ -37,7 +37,6 @@ struct CardLayoutSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
     }
 
     @ViewBuilder

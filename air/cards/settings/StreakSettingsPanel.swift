@@ -47,7 +47,7 @@ struct StreakSettingsView: View {
     }
 
     var body: some View {
-        Form {
+        SettingsPanel(name: "Steak") {
             Section("Render Settings") {
                 Picker("Streak Type", selection: $streakSetting) {
                     ForEach(StreakSetting.allCases) { setting in
@@ -172,8 +172,6 @@ struct StreakSettingsView: View {
                 }
             }
         }
-        .formStyle(.grouped)
-        .navigationTitle("Streak Card")
         .onAppear {
             primaryColor = Color(hex: primaryHex) ?? .blue
             secondaryColor = Color(hex: secondaryHex) ?? .green
