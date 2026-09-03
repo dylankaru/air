@@ -1,12 +1,18 @@
 # air
-Every morning I was bouncing between five apps just to check the weather and headlines before actually starting my day, and I didn't even have a to-do list. `air` puts all of it in one glance so you don't have to.
-
-`air` is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance.
+`air` is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance, solving the problem of spending too much time going through different applications for different things, hence wasting time.
 
 ![air dashboard](screenshots/dashboard.png)
 
+## AI Declaration
+
+Yes, I used AI models for this project. Specifically: in-line code completions to save time, and AudioManager used Gemini to help make. I used Claude to help me research how to find CPU, GPU and some memory stats in the System Stats card, but everything else in the project was done by me.
+
+## Credits
+
+My project uses Kirtan Shah's [nowplaying-cli](https://github.com/kirtan-shah/nowplaying-cli) to pull metadata from macOS's Now Playing system.
+
 ## What it does
-`air` opens a card-based dashboard so you get the important stuff quickly instead of hunting through different apps. From factory release it includes:
+air opens a card-based dashboard so you get the important stuff quickly instead of hunting through different apps. From factory release it includes:
 - Weather (current conditions and a multi-day forecast)
 - News (a feed of recent international headlines)
 - To-Do List (a simple task list)
@@ -17,22 +23,22 @@ Every morning I was bouncing between five apps just to check the weather and hea
 - Bookmarks (quick links/app shortcuts)
 - Audio Player (playback controls for media)
 - Speed Test (internet speed test)
+- System Stats (shows system statistics)
+
 Cards are laid out on a grid and has settings, so you can configure the dashboard to show you what you care about.
-## Built With
-- Swift + SwiftUI
-- SwiftData
-- A small custom backend that serves weather, news, and speed test data
-  - You can wire your own api, I just made my own for testing and it will most likely be up indefinetely
+## What I built
+- The app, with SwiftUI
+- A small custom backend that serves weather, news, and speed test data (you can wire your own api, I just made my own for testing and it will most likely be up indefinetely, I used Python and FastAPI)
 ## Get Started
 ### Requirements
-- Apple Silicon (M-series) Mac
+- Apple Silicon (so M series) Mac
 - macOS Tahoe (26)
   - air uses liquid glass elements
 - Associated Xcode
 ### Run it
 
-Grab the latest `.dmg` from [Releases](https://github.com/dylankaru/air/releases), open it, and drag `air` into Applications.
-> Note: since this isn't notarised, macOS Gatekeeper will warn on first launch, right-click the app -> Open to bypass it.
+Get the `.dmg` from [Releases](https://github.com/dylankaru/air/releases), open it, and run the installer.
+> Note: since this isn't notarised, macOS Gatekeeper might warn you on first launch, so you may need to right-click the app -> Open to bypass it.
 
 **OR**
 
@@ -41,29 +47,14 @@ Grab the latest `.dmg` from [Releases](https://github.com/dylankaru/air/releases
 git clone https://github.com/dylankaru/air.git
 cd air
 ```
-2. Open `air.xcodeproj` in Xcode
+2. Open the project in Xcode
 3. Build and run (`⌘R`)
 
-> Note: The Audio Player's "macOS Now Playing" source uses a bundled copy of `nowplaying-cli` — no separate install needed.
-
-## Project Structure
-```
-air/
-├── air/
-│   ├── airApp.swift          # App entry point
-│   ├── ContentView.swift     # Main dashboard layout & card grid
-│   ├── cards/                # Each dashboard card (Weather, News, ToDo, ...)
-│   │   └── settings/         # Per-card settings views
-│   ├── utils/                # Shared managers (audio, JSON caching, API clients)
-│   │   └── api/              # Networking layer for weather/news/speed test
-│   └── Assets.xcassets/      # Icons, images, fonts
-├── airTests/                 # Unit tests (i didnt really use this)
-└── airUITests/               # UI tests (this too)
-```
+> Note: The Audio Player's "macOS Now Playing" source uses a bundled copy of `nowplaying-cli`, no separate install needed.
 
 ## Making Your Own Card
 Designing your own card is simple as it only requires basic SwiftUI knowledge.
-1. Create the view. For organisational sake, add it under `air/cards` , for example `MyCard.swift`. Wrap your content in the shared `Card` container so that it gets the standard corner radius, background, and can be rendered by the masonry:
+1. Create the view. For organisation sake, add it under `air/cards` , for example `MyCard.swift`. Wrap your content in the `Card` container so that it gets the standard corner radius, background, and can be rendered by the masonry:
 ```swift
    struct MyCard: View {
        var body: some View {
@@ -75,9 +66,9 @@ Designing your own card is simple as it only requires basic SwiftUI knowledge.
 ```
 2. (Optional) Add a settings view. If you design your card to be configurable, create a matching file in `air/cards/settings/`, for example `MySettingsView.swift`, following the pattern of the existing settings files.
 
-3. When designing your cards, it would be better to follow these trends: card settings typically persist using UserDefaults (so `@AppStorage`), and card data is stored using the JSONManager and written either to `.cache` or `.applicationSupport`
+3. When designing your cards, it would be better to follow these trends: I've saved card settings to UserDefaults (so `@AppStorage`), and card data is stored using the JSONManager and written either to `.cache` or `.applicationSupport`
 
-4. Register the card. In `ContentView.swift`, the `appCards` array is where all cards are instantiated. `CardItem` accepts the following arguments: key, title, icon, colStart, colEnd, rowStart, rowEnd, minColSpan, minRowSpan, settingsView, and content (they also accept ignoreEdgePadding and ignoreStandardArrangements, but you're likely need not to use them).
+4. Register the card. In `ContentView.swift`, the `appCards` array is where all cards are initialised. `CardItem` accepts the following arguments: key, title, icon, colStart, colEnd, rowStart, rowEnd, minColSpan, minRowSpan, settingsView, and content (they also accept ignoreEdgePadding and ignoreStandardArrangements, but you're likely need not to use them).
 
 ```swift
 CardItem(
