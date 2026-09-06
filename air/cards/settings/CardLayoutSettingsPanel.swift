@@ -23,14 +23,14 @@ struct CardLayoutSettingsPanel: View {
                     }
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
-                
+
                 Button("Reset All to Default", role: .destructive) {
                     layoutStore.resetAll()
                     conflicts.removeAll()
                 }
                 .frame(maxWidth: .infinity, alignment: .trailing)
             }
-            
+
             ForEach(appCards) { card in
                 Section(card.title ?? card.key.capitalized) {
                     rowContent(for: card)
@@ -44,43 +44,41 @@ struct CardLayoutSettingsPanel: View {
         let current = layoutStore.override(for: card)
 
         Toggle("Show Card", isOn: Binding(
-                get: {
-                    current.isVisible
-                },
-                set: { newValue in
-                    layoutStore.update(
-                        key: card.key,
-                        default: current
-                    ) {
-                        $0.isVisible = newValue
+            get: { current.isVisible },
+            set: { newValue in
+                if newValue {
+                    if let slot = layoutStore.findAvailablePosition(for: card, in: appCards, columns: columns, rows: rows) {
+                        layoutStore.update(key: card.key, default: current) { existing in
+                            existing = slot
+                        }
+                        conflicts[card.key] = nil
+                    } else {
+                        conflicts[card.key] = "No free space available for this card"
                     }
-
+                } else {
+                    layoutStore.update(key: card.key, default: current) {
+                        $0.isVisible = false
+                    }
                     conflicts[card.key] = nil
                 }
-            )
-        )
+            }
+        ))
 
         if current.isVisible {
-            Stepper( "Start Column: \(current.colStart)") {
+            Stepper("Start Column: \(current.colStart)") {
                 attempt(card) { existing in
                     var updated = existing
-
-                    if updated.colStart <
-                        updated.colEnd - card.minColSpan {
-
+                    if updated.colStart < updated.colEnd - card.minColSpan {
                         updated.colStart += 1
                     }
-
                     return updated
                 }
             } onDecrement: {
                 attempt(card) { existing in
                     var updated = existing
-
                     if updated.colStart > 0 {
                         updated.colStart -= 1
                     }
-
                     return updated
                 }
             }
@@ -88,23 +86,17 @@ struct CardLayoutSettingsPanel: View {
             Stepper("End Column: \(current.colEnd)") {
                 attempt(card) { existing in
                     var updated = existing
-
                     if updated.colEnd < columns {
                         updated.colEnd += 1
                     }
-
                     return updated
                 }
             } onDecrement: {
                 attempt(card) { existing in
                     var updated = existing
-
-                    if updated.colEnd >
-                        updated.colStart + card.minColSpan {
-
+                    if updated.colEnd > updated.colStart + card.minColSpan {
                         updated.colEnd -= 1
                     }
-
                     return updated
                 }
             }
@@ -112,23 +104,17 @@ struct CardLayoutSettingsPanel: View {
             Stepper("Start Row: \(current.rowStart)") {
                 attempt(card) { existing in
                     var updated = existing
-
-                    if updated.rowStart <
-                        updated.rowEnd - card.minRowSpan {
-
+                    if updated.rowStart < updated.rowEnd - card.minRowSpan {
                         updated.rowStart += 1
                     }
-
                     return updated
                 }
             } onDecrement: {
                 attempt(card) { existing in
                     var updated = existing
-
                     if updated.rowStart > 0 {
                         updated.rowStart -= 1
                     }
-
                     return updated
                 }
             }
@@ -136,23 +122,17 @@ struct CardLayoutSettingsPanel: View {
             Stepper("End Row: \(current.rowEnd)") {
                 attempt(card) { existing in
                     var updated = existing
-
                     if updated.rowEnd < rows {
                         updated.rowEnd += 1
                     }
-
                     return updated
                 }
             } onDecrement: {
                 attempt(card) { existing in
                     var updated = existing
-
-                    if updated.rowEnd >
-                        updated.rowStart + card.minRowSpan {
-
+                    if updated.rowEnd > updated.rowStart + card.minRowSpan {
                         updated.rowEnd -= 1
                     }
-
                     return updated
                 }
             }
@@ -168,13 +148,16 @@ struct CardLayoutSettingsPanel: View {
                 conflicts[card.key] = nil
             }
             .font(.caption)
+        } else if let message = conflicts[card.key] {
+            Text(message)
+                .font(.caption)
+                .foregroundColor(.red)
         }
     }
 
-    private func attempt(_ card: CardItem,_ transform: @escaping (CardLayoutOverride) -> CardLayoutOverride) {
+    private func attempt(_ card: CardItem, _ transform: @escaping (CardLayoutOverride) -> CardLayoutOverride) {
         if let blocker = layoutStore.tryUpdateLinked(card: card, in: appCards, transform) {
-            conflicts[card.key] =
-                "Overlaps \(blocker.title ?? blocker.key.capitalized)"
+            conflicts[card.key] = "Overlaps \(blocker.title ?? blocker.key.capitalized)"
         } else {
             conflicts[card.key] = nil
         }

@@ -43,7 +43,7 @@ class CardLayoutStore: ObservableObject {
     }
     
     func override(for card: CardItem) -> CardLayoutOverride {
-        overrides[card.key] ?? CardLayoutOverride(colStart: card.colStart, colEnd: card.colEnd, rowStart: card.rowStart, rowEnd: card.rowEnd, isVisible: true)
+        overrides[card.key] ?? CardLayoutOverride(colStart: card.colStart, colEnd: card.colEnd, rowStart: card.rowStart, rowEnd: card.rowEnd, isVisible: card.startsVisible)
     }
     
     func update(key: String, default defaultOverride: CardLayoutOverride, _ transform: (inout CardLayoutOverride) -> Void) {
@@ -61,6 +61,45 @@ class CardLayoutStore: ObservableObject {
     func resetAll() {
         overrides.removeAll()
         save()
+    }
+    
+    func findAvailablePosition(for card: CardItem, in cards: [CardItem], columns: Int, rows: Int) -> CardLayoutOverride? {
+        let colSpan = max(card.minColSpan, card.colEnd - card.colStart)
+        let rowSpan = max(card.minRowSpan, card.rowEnd - card.rowStart)
+        
+        let occupied: [(colStart: Int, colEnd: Int, rowStart: Int, rowEnd: Int)] = cards
+            .filter { $0.key != card.key }
+            .compactMap { other in
+                let o = override(for: other)
+                guard o.isVisible else { return nil }
+                return (o.colStart, o.colEnd, o.rowStart, o.rowEnd)
+            }
+        
+        func overlaps(_ r: (colStart: Int, colEnd: Int, rowStart: Int, rowEnd: Int)) -> Bool {
+            occupied.contains { o in
+                r.colStart < o.colEnd && o.colStart < r.colEnd &&
+                r.rowStart < o.rowEnd && o.rowStart < r.rowEnd
+            }
+        }
+        
+        guard rowSpan <= rows, colSpan <= columns else { return nil }
+        
+        for rowStart in 0...(rows - rowSpan) {
+            for colStart in 0...(columns - colSpan) {
+                let candidate = (colStart, colStart + colSpan, rowStart, rowStart + rowSpan)
+                if !overlaps(candidate) {
+                    return CardLayoutOverride(
+                        colStart: candidate.0,
+                        colEnd: candidate.1,
+                        rowStart: candidate.2,
+                        rowEnd: candidate.3,
+                        isVisible: true
+                    )
+                }
+            }
+        }
+        
+        return nil
     }
     
     func effectiveCards(from cards: [CardItem]) -> [CardItem] {

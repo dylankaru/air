@@ -1,11 +1,8 @@
 import SwiftUI
-import AppKit
 
 struct NewsCard: View {
     @AppStorage("air_theme") private var theme: Theme = .light
-    
     @AppStorage("news_user_prefs") private var newsPreference: String = "news today"
-    @AppStorage("news_too_distracting") private var turnOffNews: Bool = false
     
     @State private var isTestingNews = false
 
@@ -15,54 +12,105 @@ struct NewsCard: View {
     @State private var cycleTask: Task<Void, Never>?
     @State private var errorMessage: String?
     @State private var isReady = false
+    
+    @State private var isHovering = false
+    @State private var moveDirection: Int = 1
 
     var body: some View {
-            Card {
-                Group {
-                    if !turnOffNews {
-                        ZStack {
-                            if let errorMessage {
-                                Text(errorMessage)
-                                    .foregroundColor(theme.textColour)
-                                    .font(.caption)
-                            } else if !isReady {
-                                Text("Loading news…")
-                                    .foregroundColor(theme.textColour)
-                            } else {
-                                NewsCardContent(
-                                    article: articles[currentIndex],
-                                    image: preloadedImages[articles[currentIndex].id]
-                                )
-                                .id(articles[currentIndex].id)
-                                .transition(
-                                    .asymmetric(
-                                        insertion: .move(edge: .top).combined(with: .opacity),
-                                        removal: .move(edge: .bottom).combined(with: .opacity)
-                                    )
-                                )
+        Card {
+            Group {
+                //                if !turnOffNews {
+                ZStack {
+                    if let errorMessage {
+                        Text(errorMessage)
+                            .foregroundColor(theme.textColour)
+                            .font(.caption)
+                    } else if !isReady {
+                        Text("Loading news…")
+                            .foregroundColor(theme.textColour)
+                    } else {
+                        NewsCardContent(
+                            article: articles[currentIndex],
+                            image: preloadedImages[articles[currentIndex].id]
+                        )
+                        .id(articles[currentIndex].id)
+                        .transition(
+                            .asymmetric(
+                                insertion: .move(edge: moveDirection >= 0 ? .bottom : .top).combined(with: .opacity),
+                                removal: .move(edge: moveDirection >= 0 ? .top : .bottom).combined(with: .opacity)
+                            )
+                        )
+                        .overlay {
+                            ScrollDetector { steps in
+                                moveArticle(by: steps)
                             }
                         }
-                        .animation(.easeInOut(duration: 0.5), value: currentIndex)
-                        .clipped()
-                        .padding(10)
-                    } else {
-                        VStack {
-                            Spacer()
-                            Text("You've turned off news... I see how it is")
-                                .foregroundColor(theme.textColour)
-                                .frame(maxWidth: .infinity, alignment: .center)
-                            Spacer()
+                        .overlay(alignment: .trailing) {
+                            if isHovering && !articles.isEmpty {
+                                VStack(spacing: 8) {
+                                    let maxDots = min(articles.count, 10)
+                                    ForEach(0..<maxDots, id: \.self) { index in
+                                        Circle()
+                                            .fill(index == currentIndex ? Color.white : Color.white.opacity(0.3))
+                                            .frame(width: 8, height: 8)
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 2)
+                                            .contentShape(Rectangle())
+                                            .onTapGesture {
+                                                moveDirection = index >= currentIndex ? 1 : -1
+                                                currentIndex = index
+                                                startCycling()
+                                            }
+                                    }
+                                }
+                                .padding(.trailing, 4)
+                                .transition(.opacity)
+                            }
                         }
                     }
                 }
-                .task {
-                    await loadNews()
+                .onHover { hovering in
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isHovering = hovering
+                    }
                 }
-                .onDisappear {
-                    cycleTask?.cancel()
-                }
+                .clipped()
+                .padding(10)
+                //                } else {
+                //                    VStack {
+                //                        Spacer()
+                //                        Text("You've turned off news... I see how it is")
+                //                            .foregroundColor(theme.textColour)
+                //                            .frame(maxWidth: .infinity, alignment: .center)
+                //                        Spacer()
+                //                    }
+                //                }
+            }
+            .task {
+                await loadNews()
+            }
+            .onDisappear {
+                cycleTask?.cancel()
             }
         }
+    }
+    
+    private func moveArticle(by steps: Int) {
+        guard !articles.isEmpty else { return }
+        
+        let clampedSteps = steps > 0 ? 1 : (steps < 0 ? -1 : 0)
+        guard clampedSteps != 0 else { return }
+        
+        moveDirection = clampedSteps
+        
+        let newIndex = (currentIndex + clampedSteps) % articles.count
+        
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+            currentIndex = newIndex < 0 ? newIndex + articles.count : newIndex
+        }
+        
+        startCycling()
+    }
 
     private func loadNews() async {
         do {
@@ -77,7 +125,6 @@ struct NewsCard: View {
             }
 
             fetchedArticles = dedupedByImage(fetchedArticles)
-
             let images = await preloadImages(for: fetchedArticles)
 
             articles = fetchedArticles
@@ -111,8 +158,7 @@ struct NewsCard: View {
                 let imageURL = article.imageURL
 
                 group.addTask {
-                    guard let urlString = imageURL,
-                          let url = URL(string: urlString) else {
+                    guard let urlString = imageURL, let url = URL(string: urlString) else {
                         return (articleID, nil)
                     }
 
@@ -129,14 +175,10 @@ struct NewsCard: View {
                         }
 
                         guard let httpResponse = response as? HTTPURLResponse,
-                              (200...299).contains(httpResponse.statusCode) else {
+                              (200...299).contains(httpResponse.statusCode),
+                              let image = NSImage(data: data) else {
                             return (articleID, nil)
                         }
-
-                        guard let image = NSImage(data: data) else {
-                            return (articleID, nil)
-                        }
-
                         return (articleID, image)
                     } catch {
                         return (articleID, nil)
@@ -146,9 +188,7 @@ struct NewsCard: View {
 
             var result: [String: NSImage] = [:]
             for await (id, image) in group {
-                if let image {
-                    result[id] = image
-                }
+                if let image { result[id] = image }
             }
             return result
         }
@@ -156,13 +196,16 @@ struct NewsCard: View {
 
     private func startCycling() {
         cycleTask?.cancel()
-        cycleTask = Task {
+        cycleTask = Task { @MainActor in
             while !Task.isCancelled {
                 let delay = Double.random(in: 4...5)
                 try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
                 guard !Task.isCancelled, !articles.isEmpty else { continue }
                 
-                currentIndex = (currentIndex + 1) % articles.count
+                moveDirection = 1
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    currentIndex = (currentIndex + 1) % articles.count
+                }
             }
         }
     }
@@ -212,5 +255,7 @@ private struct NewsCardContent: View {
         }
         .frame(height: 238)
         .clipShape(RoundedRectangle(cornerRadius: 12))
+        .compositingGroup()
+        .drawingGroup()
     }
 }

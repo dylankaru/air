@@ -90,7 +90,15 @@ let appCards: [CardItem] = [
         key: "systemstats",
         colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 14,
         minColSpan: 3, minRowSpan: 3
-    ) { SystemStatsCard() }
+    ) { SystemStatsCard() },
+    CardItem(
+        key: "list",
+        title: "List Generator", icon: "list.bullet.circle.fill",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 14,
+        minColSpan: 3, minRowSpan: 3,
+        startsVisible: false, // Not a default card
+        settingsPanel: { ListGeneratorSettingsPanel() }
+    ) { DefaultListGeneratorCard() }
 ]
 
 struct ColStartKey: LayoutValueKey {
@@ -160,6 +168,7 @@ struct CardItem: Identifiable {
     let minRowSpan: Int
     let ignoreEdgePadding: Bool
     let ignoreStandardArrangements: Bool
+    let startsVisible: Bool
     let settingsPanel: AnyView?
     let content: AnyView?
     
@@ -175,6 +184,7 @@ struct CardItem: Identifiable {
         minRowSpan: Int = 1,
         ignoreEdgePadding: Bool = false,
         ignoreStandardArrangements: Bool = false,
+        startsVisible: Bool = true,
         @ViewBuilder settingsPanel: () -> SettingsContent = { EmptyView() },
         @ViewBuilder content: () -> Content
     ) {
@@ -189,6 +199,7 @@ struct CardItem: Identifiable {
         self.minRowSpan = max(1, minRowSpan)
         self.ignoreEdgePadding = ignoreEdgePadding
         self.ignoreStandardArrangements = ignoreStandardArrangements
+        self.startsVisible = startsVisible
         self.settingsPanel = AnyView(settingsPanel())
         self.content = AnyView(content())
     }

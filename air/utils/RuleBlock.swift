@@ -2,6 +2,8 @@
 //  RuleBlock.swift
 //  air
 //
+//  Created by Dylan Karunanayake on 4/9/2026.
+//
 
 import Foundation
 
@@ -20,7 +22,7 @@ struct RuleBlock: Codable, Identifiable, Equatable {
             case .noDuplicates: return "Never pick the same item twice in one generation."
             case .cooldown: return "An item can't reappear for a number of past generations."
             case .categoryRest: return "A category can't reappear for a number of past generations."
-            case .categoryBalance: return "Cap how much of the total pool one category can make up."
+            case .categoryBalance: return "Cap how much of the pool one category can make up, either overall or within a recent window of generations."
             case .excludeKeyword: return "Skip any item whose title contains a keyword."
             }
         }
@@ -31,6 +33,8 @@ struct RuleBlock: Codable, Identifiable, Equatable {
     var intParam: Int = 3
     var percentParam: Int = 50
     var textParam: String = ""
+    var useWindow: Bool = false
+    var windowParam: Int = 5
 
     var summary: String {
         switch kind {
@@ -41,7 +45,11 @@ struct RuleBlock: Codable, Identifiable, Equatable {
         case .categoryRest:
             return "Category can't repeat for \(intParam) generation\(intParam == 1 ? "" : "s")"
         case .categoryBalance:
-            return "No category over \(percentParam)% of all picks"
+            if useWindow {
+                return "No category over \(percentParam)% of picks in the last \(windowParam) generation\(windowParam == 1 ? "" : "s")"
+            } else {
+                return "No category over \(percentParam)% of all picks, ever"
+            }
         case .excludeKeyword:
             return textParam.isEmpty ? "Exclude keyword (not set)" : "Exclude items containing \"\(textParam)\""
         }
@@ -64,7 +72,8 @@ func buildRules(from blocks: [RuleBlock]) -> [ListRule<DefaultListItem>] {
         case .categoryBalance:
             return ListRule<DefaultListItem>.attributeBalance(
                 maxRatio: Double(block.percentParam) / 100.0,
-                keyPath: \DefaultListItem.category
+                keyPath: \DefaultListItem.category,
+                window: block.useWindow ? block.windowParam : nil
             )
 
         case .excludeKeyword:
