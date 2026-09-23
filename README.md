@@ -1,6 +1,8 @@
 # air
 `air` is a lightweight, open-source desktop dashboard that collapses your morning clutter of weather, news, to-dos, and whatever else you could imagine into a glance, solving the problem of spending too much time going through different applications for different things, hence wasting time.
 
+Video Demo: https://streamable.com/c8mqt2
+
 ![air dashboard](screenshots/dashboard.png)
 
 ## AI Declaration
