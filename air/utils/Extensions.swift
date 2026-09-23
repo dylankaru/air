@@ -141,3 +141,35 @@ extension Color {
     }
 }
 
+extension NSImage {
+    func cgImageRepresentation() -> CGImage? {
+        var rect = CGRect(origin: .zero, size: size)
+        return cgImage(forProposedRect: &rect, context: nil, hints: nil)
+    }
+}
+
+extension KeyBinding {
+    static let nextSpaceDefault = KeyBinding(key: "]", modifiers: EventModifiers.command.rawValue)
+    static let previousSpaceDefault = KeyBinding(key: "[", modifiers: EventModifiers.command.rawValue)
+    
+    var displayString: String {
+        var parts: [String] = []
+        let mods = eventModifiers
+        if mods.contains(.control) { parts.append("⌃") }
+        if mods.contains(.option) { parts.append("⌥") }
+        if mods.contains(.shift) { parts.append("⇧") }
+        if mods.contains(.command) { parts.append("⌘") }
+        parts.append(key.uppercased())
+        return parts.joined()
+    }
+}
+
+extension EventModifiers {
+    init(_ flags: NSEvent.ModifierFlags) {
+        self = []
+        if flags.contains(.command) { self.insert(.command) }
+        if flags.contains(.shift) { self.insert(.shift) }
+        if flags.contains(.option) { self.insert(.option) }
+        if flags.contains(.control) { self.insert(.control) }
+    }
+}

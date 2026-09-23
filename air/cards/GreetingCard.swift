@@ -10,7 +10,7 @@ import AppKit
 
 struct GreetingCard: View {
     @AppStorage("air_username") private var userName: String = "Friend"
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @State private var greetingText: String = ""
     @State private var isLoading: Bool = true

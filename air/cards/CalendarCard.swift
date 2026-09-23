@@ -9,7 +9,7 @@ import SwiftUI
 import EventKit
 
 struct CalendarCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @State private var eventStore = EKEventStore()
     @State private var isAuthorised = false

@@ -31,35 +31,58 @@ class CardLayoutStore: ObservableObject {
     static let shared = CardLayoutStore()
     static let fixedKeys: Set<String> = ["greeting"]
     
+    /// Which space's layout is currently active. ContentView keeps this in sync
+    /// with `activeSpace.id` whenever the user switches spaces. Every method
+    /// below reads/writes overrides scoped to this space automatically, so
+    /// callers (EditHandleOverlay, settings panels, etc.) don't need to know
+    /// about spaces at all — their calls are unchanged from before spaces existed.
+    @Published var currentSpaceId: UUID
+    
     @Published private(set) var overrides: [String: CardLayoutOverride] = [:]
     @Published var isEditMode: Bool = false
+    @Published private(set) var shortcuts: [String: KeyBinding] = [:]
     
     private let filename = "air_card_layout.json"
+    private let shortcutsFilename = "air_shortcuts.json"
     
     private var dragBackup: [String: CardLayoutOverride]? = nil
     
     init() {
+        // Fall back to a stable placeholder if SpacesManager hasn't loaded any
+        // spaces yet; ContentView.onAppear sets the real value immediately.
+        currentSpaceId = SpacesManager.shared.spaces.first?.id ?? UUID()
         load()
+        loadShortcuts()
+    }
+    
+    // MARK: - Key namespacing (internal only — nothing outside this file needs to know)
+    
+    private func storageKey(_ cardKey: String) -> String {
+        "\(currentSpaceId.uuidString)_\(cardKey)"
     }
     
     func override(for card: CardItem) -> CardLayoutOverride {
-        overrides[card.key] ?? CardLayoutOverride(colStart: card.colStart, colEnd: card.colEnd, rowStart: card.rowStart, rowEnd: card.rowEnd, isVisible: card.startsVisible)
+        overrides[storageKey(card.key)] ?? CardLayoutOverride(colStart: card.colStart, colEnd: card.colEnd, rowStart: card.rowStart, rowEnd: card.rowEnd, isVisible: card.startsVisible)
     }
     
     func update(key: String, default defaultOverride: CardLayoutOverride, _ transform: (inout CardLayoutOverride) -> Void) {
-        var current = overrides[key] ?? defaultOverride
+        let k = storageKey(key)
+        var current = overrides[k] ?? defaultOverride
         transform(&current)
-        overrides[key] = current
+        overrides[k] = current
         save()
     }
     
     func reset(key: String) {
-        overrides.removeValue(forKey: key)
+        overrides.removeValue(forKey: storageKey(key))
         save()
     }
     
     func resetAll() {
-        overrides.removeAll()
+        let prefix = currentSpaceId.uuidString + "_"
+        for k in overrides.keys where k.hasPrefix(prefix) {
+            overrides.removeValue(forKey: k)
+        }
         save()
     }
     
@@ -104,7 +127,9 @@ class CardLayoutStore: ObservableObject {
     
     func effectiveCards(from cards: [CardItem]) -> [CardItem] {
         cards.compactMap { card in
-            guard let o = overrides[card.key] else { return card }
+            guard let o = overrides[storageKey(card.key)] else {
+                return card.startsVisible ? card : nil
+            }
             guard o.isVisible else { return nil }
             var updated = card
             updated.colStart = o.colStart
@@ -138,7 +163,8 @@ class CardLayoutStore: ObservableObject {
         
         overrides = backup
         
-        let before = backup[card.key] ?? override(for: card)
+        let cardKey = storageKey(card.key)
+        let before = backup[cardKey] ?? override(for: card)
         let colSpan = before.colEnd - before.colStart
         let rowSpan = before.rowEnd - before.rowStart
         
@@ -153,7 +179,7 @@ class CardLayoutStore: ObservableObject {
         
         let overlapping = cards.filter { other in
             guard other.key != card.key, !Self.fixedKeys.contains(other.key) else { return false }
-            let o = backup[other.key] ?? override(for: other)
+            let o = backup[storageKey(other.key)] ?? override(for: other)
             guard o.isVisible else { return false }
             let colOverlap = after.colStart < o.colEnd && o.colStart < after.colEnd
             let rowOverlap = after.rowStart < o.rowEnd && o.rowStart < after.rowEnd
@@ -161,12 +187,13 @@ class CardLayoutStore: ObservableObject {
         }
         
         if overlapping.isEmpty {
-            overrides[card.key] = after
+            overrides[cardKey] = after
             return
         }
         
         guard overlapping.count == 1, let blocker = overlapping.first else { return }
-        let blockerOverride = backup[blocker.key] ?? override(for: blocker)
+        let blockerKey = storageKey(blocker.key)
+        let blockerOverride = backup[blockerKey] ?? override(for: blocker)
         let blockerSpanMatches =
         (blockerOverride.colEnd - blockerOverride.colStart == colSpan) &&
         (blockerOverride.rowEnd - blockerOverride.rowStart == rowSpan)
@@ -178,8 +205,8 @@ class CardLayoutStore: ObservableObject {
         swapped.rowStart = before.rowStart
         swapped.rowEnd = before.rowEnd
         
-        overrides[card.key] = after
-        overrides[blocker.key] = swapped
+        overrides[cardKey] = after
+        overrides[blockerKey] = swapped
     }
     
     func previewResize(card: CardItem, colDelta: Int, rowDelta: Int, in cards: [CardItem], columns: Int, rows: Int) {
@@ -298,6 +325,9 @@ class CardLayoutStore: ObservableObject {
         let linked = cardsThatShareEdges(of: card, before: before, after: after, in: cards)
         let linkedKeys = Set(linked.map(\.key) + [card.key])
         
+        // Candidates are keyed by the plain card key (not the namespaced
+        // storage key) since that's what overlap-checking below needs;
+        // translated to namespaced keys only at the final write.
         var candidates: [String: CardLayoutOverride] = [card.key: after]
         
         for (key, apply) in linked {
@@ -328,9 +358,38 @@ class CardLayoutStore: ObservableObject {
             }
         }
         
-        for (key, value) in candidates { overrides[key] = value }
+        for (key, value) in candidates {
+            overrides[storageKey(key)] = value
+        }
         if commit { save() }
         return nil
+    }
+    
+    func shortcut(for actionKey: String, default defaultBinding: KeyBinding) -> KeyBinding {
+        shortcuts[actionKey] ?? defaultBinding
+    }
+    
+    func setShortcut(_ binding: KeyBinding, for actionKey: String) {
+        shortcuts[actionKey] = binding
+        saveShortcuts()
+    }
+    
+    func resetShortcut(for actionKey: String) {
+        shortcuts.removeValue(forKey: actionKey)
+        saveShortcuts()
+    }
+    
+    func resetAllShortcuts() {
+        shortcuts.removeAll()
+        saveShortcuts()
+    }
+    
+    private func loadShortcuts() {
+        shortcuts = JSONManager.load([String: KeyBinding].self, from: shortcutsFilename, location: .applicationSupport) ?? [:]
+    }
+    
+    private func saveShortcuts() {
+        try? JSONManager.save(shortcuts, to: shortcutsFilename, location: .applicationSupport)
     }
     
     private func load() {

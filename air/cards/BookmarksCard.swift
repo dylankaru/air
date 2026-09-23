@@ -39,7 +39,7 @@ enum BookmarkOpenAction: Codable, Equatable {
 /// When using an app, ensure the app is in the Applications folder on your Mac and then just pass the name of the app (case sensitive) in [location]
 /// Custom SF Symbols must be added to the assets and then passed through, if you don't want to use existing SF Symbols
 struct BookmarksCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @State private var bookmarks = BookmarkStorage.load()
 

@@ -17,13 +17,13 @@ struct AboutView: View {
             Text("air")
                 .font(.title.bold())
             
-            Text("Version 1.1")
+            Text("Version 2")
                 .font(.caption)
-                .foregroundStyle(.secondary)
+                .foregroundColor(.secondary)
             
             Text("©2026 Dylan Karunanayake")
                 .font(.caption2)
-                .foregroundStyle(.tertiary)
+                .foregroundColor(.gray)
         }
         .padding(24)
         .frame(width: 260, height: 200)

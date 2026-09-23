@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct Card<Content: View>: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
 
     let backgroundColor: Color?
     let content: Content

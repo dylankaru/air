@@ -27,7 +27,7 @@ enum TimerMode: String, CaseIterable, Identifiable {
 }
 
 struct TimerCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @AppStorage("timer_work_duration") private var workDuration: Int = TimerMode.work.defaultDuration
     @AppStorage("timer_rest_duration") private var restDuration: Int = TimerMode.rest.defaultDuration

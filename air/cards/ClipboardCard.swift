@@ -18,7 +18,7 @@ enum ClipboardStorage {
 }
 
 struct ClipboardCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     let pasteboard = NSPasteboard.general
     private let filename = ClipboardStorage.filename
@@ -109,7 +109,7 @@ struct ClipboardCard: View {
 }
 
 struct ClipboardCardRow: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     let item: String
     let onCopy: () -> Void

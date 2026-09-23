@@ -10,7 +10,6 @@ import ServiceManagement
 
 struct GeneralSettingsPanel: View {
     @AppStorage("air_username") private var userName: String = "Friend"
-    @AppStorage("air_theme") private var theme: Theme = .light
     @AppStorage("air_boot_on_start") private var autoStart: Bool = SMAppService.mainApp.status == .enabled
     @AppStorage("air_two_settings_buttons") private var twoButtons: Bool = false
     
@@ -32,13 +31,6 @@ struct GeneralSettingsPanel: View {
                             print("Failed to update launch at login: \(error.localizedDescription)")
                         }
                     }
-                
-                Picker("Theme", selection: $theme) {
-                    ForEach(Theme.allCases, id: \.self) { themeOption in
-                        Text(themeOption.rawValue.capitalized).tag(themeOption)
-                    }
-                }
-                .pickerStyle(.menu)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Toggle("Two Settings Buttons", isOn: $twoButtons)

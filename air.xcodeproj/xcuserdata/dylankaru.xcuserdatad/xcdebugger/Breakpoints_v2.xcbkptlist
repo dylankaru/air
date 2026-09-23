@@ -7,17 +7,17 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "070E973E-F9C2-419F-9016-B2B452173694"
+            uuid = "B76AB6A6-1A63-44FD-AA4F-5A0A20FBAF1D"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
-            filePath = "air/ContentView.swift"
+            filePath = "air/cards/IPCard.swift"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "164"
-            endingLineNumber = "164"
-            landmarkName = "CardItem"
-            landmarkType = "14">
+            startingLineNumber = "49"
+            endingLineNumber = "49"
+            landmarkName = "fetchPublicIP()"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
    </Breakpoints>

@@ -8,7 +8,8 @@
 import SwiftUI
 
 struct SpeedTestCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
+    
     @AppStorage("speed_test_do") private var doSpeedTest: Bool = true
     
     @State private var viewModel = SpeedTestViewModel()

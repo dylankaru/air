@@ -1,16 +1,7 @@
 {
   "images" : [
     {
-      "idiom" : "mac",
-      "scale" : "1x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
+      "filename" : "Icon-iOS-Dark-1024@1x.png",
       "idiom" : "mac",
       "scale" : "1x"
     },
@@ -25,16 +16,6 @@
       "scale" : "1x"
     },
     {
-      "idiom" : "mac",
-      "scale" : "2x"
-    },
-    {
-      "appearances" : [
-        {
-          "appearance" : "luminosity",
-          "value" : "light"
-        }
-      ],
       "idiom" : "mac",
       "scale" : "2x"
     },

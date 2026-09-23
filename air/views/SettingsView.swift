@@ -11,7 +11,7 @@ struct SettingsView: View {
     @State private var selectedTabID: String? = "general"
 
     var configurableItems: [CardItem] {
-        appCards.filter { $0.settingsPanel != nil && $0.title != nil }
+        appCards.filter {  $0.settingsPanel != nil }
     }
 
     var body: some View {
@@ -22,11 +22,13 @@ struct SettingsView: View {
                         .tag("general")
                     Label("Layout", systemImage: "rectangle.grid.3x1")
                         .tag("layout")
+                    Label("Spaces", systemImage: "square.grid.3x2")
+                        .tag("spaces")
                 }
 
                 Section("Cards") {
                     ForEach(configurableItems) { item in
-                        Label(item.title ?? "Card", systemImage: item.icon ?? "square.grid.2x2")
+                        Label(item.title, systemImage: item.icon)
                             .tag(item.id.uuidString)
                     }
                 }
@@ -38,6 +40,8 @@ struct SettingsView: View {
                 GeneralSettingsPanel()
             } else if selectedTabID == "layout" {
                 CardLayoutSettingsPanel()
+            } else if selectedTabID == "spaces" {
+                SpacesSettingsPanel()
             } else if let item = configurableItems.first(where: { $0.id.uuidString == selectedTabID }),
                       let settingsView = item.settingsPanel {
                 settingsView

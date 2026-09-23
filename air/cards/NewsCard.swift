@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct NewsCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     @AppStorage("news_user_prefs") private var newsPreference: String = "news today"
     
     @State private var isTestingNews = false
@@ -212,7 +212,7 @@ struct NewsCard: View {
 }
 
 private struct NewsCardContent: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     let article: NewsArticle
     let image: NSImage?

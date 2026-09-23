@@ -26,7 +26,7 @@ enum AudioSourceSetting: String, CaseIterable, Identifiable {
 struct AudioPlayerCard: View {
     @AppStorage("audio_player_source") private var audioSourceRaw: String = AudioSourceSetting.spotify.rawValue
     @AppStorage("audio_show_artwork") private var showArtwork: Bool = true
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
 
     @StateObject private var controller: AudioSourceController
 

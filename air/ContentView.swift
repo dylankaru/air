@@ -16,6 +16,7 @@ enum EditGrid {
 let appCards: [CardItem] = [
     CardItem(
         key: "greeting",
+        title: "", icon: "",
         colStart: 0, colEnd: 6, rowStart: 0, rowEnd: 2,
         ignoreEdgePadding: true, ignoreStandardArrangements: true,
     ) { GreetingCard() },
@@ -28,7 +29,7 @@ let appCards: [CardItem] = [
     ) { WeatherCard() },
     CardItem(
         key: "notes",
-        title: "Notes", icon: "book.pages.fill", 
+        title: "Notes", icon: "book.pages.fill",
         colStart: 13, colEnd: 20, rowStart: 0, rowEnd: 4,
         minColSpan: 3, minRowSpan: 3,
         settingsPanel: { NotesSettingsPanel() },
@@ -62,6 +63,7 @@ let appCards: [CardItem] = [
     ) { TimerCard() },
     CardItem(
         key: "calendar",
+        title: "Calendar", icon: "calendar",
         colStart: 6, colEnd: 13, rowStart: 9, rowEnd: 14,
         minColSpan: 3, minRowSpan: 3
     ) { CalendarCard() },
@@ -88,6 +90,7 @@ let appCards: [CardItem] = [
     ) { BookmarksCard() },
     CardItem(
         key: "systemstats",
+        title: "System Stats", icon: "dot.scope.laptopcomputer",
         colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 14,
         minColSpan: 3, minRowSpan: 3
     ) { SystemStatsCard() },
@@ -98,7 +101,43 @@ let appCards: [CardItem] = [
         minColSpan: 3, minRowSpan: 3,
         startsVisible: false, // Not a default card
         settingsPanel: { ListGeneratorSettingsPanel() }
-    ) { DefaultListGeneratorCard() }
+    ) { DefaultListGeneratorCard() },
+    CardItem(
+        key: "worldclock",
+        title: "World Clock", icon: "globe.badge.clock",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 11,
+        minColSpan: 3, minRowSpan: 4,
+        startsVisible: false,
+        settingsPanel: { WorldClockSettingsPanel() }
+    ) { WorldClockCard() },
+    CardItem(
+        key: "converter",
+        title: "Unit Converter", icon: "convertible.side.front.open.crop.fill",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 10,
+        minColSpan: 3, minRowSpan: 3,
+        startsVisible: false,
+    ) { ConversionCard() },
+    CardItem(
+        key: "rng",
+        title: "RNG Generator", icon: "8.circle",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 10,
+        minColSpan: 3, minRowSpan: 3,
+        startsVisible: false,
+    ) { RNGCard() },
+    CardItem(
+        key: "ip",
+        title: "IP Viewer", icon: "rectangle.and.pencil.and.ellipsis",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 10,
+        minColSpan: 3, minRowSpan: 3,
+        startsVisible: false,
+    ) { IPCard() },
+    CardItem(
+        key: "qr",
+        title: "QR Code Generator", icon: "qrcode",
+        colStart: 13, colEnd: 20, rowStart: 7, rowEnd: 14,
+        minColSpan: 3, minRowSpan: 3,
+        startsVisible: false,
+    ) { QRCard() },
 ]
 
 struct ColStartKey: LayoutValueKey {
@@ -158,8 +197,9 @@ struct Masonry: Layout {
 struct CardItem: Identifiable {
     let id = UUID()
     let key: String
-    let title: String?
-    let icon: String?
+    let title: String
+    let icon: String
+    let keywords: [String]?
     var colStart: Int
     var colEnd: Int
     var rowStart: Int
@@ -174,8 +214,9 @@ struct CardItem: Identifiable {
     
     init<Content: View, SettingsContent: View>(
         key: String,
-        title: String? = nil,
-        icon: String? = nil,
+        title: String,
+        icon: String,
+        keywords: [String] = [],
         colStart: Int,
         colEnd: Int,
         rowStart: Int,
@@ -191,6 +232,7 @@ struct CardItem: Identifiable {
         self.key = key
         self.title = title
         self.icon = icon
+        self.keywords = keywords
         self.colStart = colStart
         self.colEnd = colEnd
         self.rowStart = rowStart
@@ -200,17 +242,30 @@ struct CardItem: Identifiable {
         self.ignoreEdgePadding = ignoreEdgePadding
         self.ignoreStandardArrangements = ignoreStandardArrangements
         self.startsVisible = startsVisible
-        self.settingsPanel = AnyView(settingsPanel())
+        
+        if SettingsContent.self == EmptyView.self {
+            self.settingsPanel = nil
+        } else {
+            self.settingsPanel = AnyView(settingsPanel())
+        }
+        
         self.content = AnyView(content())
     }
 }
 
 struct ContentView: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
     @AppStorage("air_two_settings_buttons") private var twoButtons: Bool = false
+    
+    @State private var isSearchPresented = false
     
     @ObservedObject private var layoutStore = CardLayoutStore.shared
     @Environment(\.openWindow) private var openWindow
+    
+    @ObservedObject private var spacesManager = SpacesManager.shared
+    @State var currentSpace: Int = 0
+    
+    var activeSpace: CardSpace { spacesManager.spaces[currentSpace] }
+    var theme: Theme { activeSpace.theme }
 
     let columns = 20
     let rows = 14
@@ -225,7 +280,7 @@ struct ContentView: View {
                     theme.backgroundColor.ignoresSafeArea()
                     
                     Masonry(columns: columns, rows: rows, spacing: 10) {
-                        ForEach(layoutStore.effectiveCards(from: appCards)) { card in
+                        ForEach(layoutStore.effectiveCards(from: activeSpace.cardList)) { card in
                             ZStack {
                                 card.content
                                 
@@ -253,19 +308,80 @@ struct ContentView: View {
                 .coordinateSpace(name: EditGrid.coordinateSpaceName)
             }
         }
+        .environment(\.activeTheme, theme)
+        .background(
+            Button("") {
+                isSearchPresented.toggle()
+            }
+                .keyboardShortcut("k", modifiers: .command)
+                .opacity(0)
+        )
+        .overlay {
+            if isSearchPresented {
+                GeometryReader { geo in
+                    TempCardView(isPresented: $isSearchPresented, containerSize: geo.size)
+                }
+            }
+        }
         .onAppear {
+            // Keep CardLayoutStore scoped to whichever space is active on launch.
+            layoutStore.currentSpaceId = activeSpace.id
+            
             NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
                 if event.keyCode == 53 {
-                    if layoutStore.isEditMode {
+                    if isSearchPresented {
+                        isSearchPresented = false
+                        return nil
+                    } else if layoutStore.isEditMode {
                         layoutStore.setEditMode(false)
                         return nil
                     }
                 }
+                
+                let toggleEditBinding = layoutStore.shortcut(for: "toggleEditMode", default: .toggleEditModeDefault)
+                if let chars = event.charactersIgnoringModifiers,
+                   let char = chars.lowercased().first,
+                   String(char) == toggleEditBinding.key,
+                   EventModifiers(event.modifierFlags) == toggleEditBinding.eventModifiers {
+                    withAnimation(.easeInOut(duration: 0.5)) {
+                        layoutStore.isEditMode.toggle()
+                    }
+                    return nil
+                }
+                
+                // Cycle spaces via configurable keybinds
+                let nextSpaceBinding = layoutStore.shortcut(for: "nextSpace", default: .nextSpaceDefault)
+                let previousSpaceBinding = layoutStore.shortcut(for: "previousSpace", default: .previousSpaceDefault)
+                if let chars = event.charactersIgnoringModifiers,
+                   let char = chars.lowercased().first {
+                    let mods = EventModifiers(event.modifierFlags)
+                    if String(char) == nextSpaceBinding.key, mods == nextSpaceBinding.eventModifiers {
+                        switchSpace(by: 1)
+                        return nil
+                    } else if String(char) == previousSpaceBinding.key, mods == previousSpaceBinding.eventModifiers {
+                        switchSpace(by: -1)
+                        return nil
+                    }
+                }
+                
                 return event
+            }
+        }
+        .onChange(of: currentSpace) { _, _ in
+            layoutStore.currentSpaceId = activeSpace.id
+        }
+        .onChange(of: spacesManager.spaces.count) { _, newCount in
+            if currentSpace >= newCount {
+                currentSpace = max(0, newCount - 1)
             }
         }
     }
     
+    private func switchSpace(by delta: Int) {
+        let count = spacesManager.spaces.count
+        guard count > 0 else { return }
+        currentSpace = ((currentSpace + delta) % count + count) % count
+    }
 
     private func SettingsButton() -> some View {
         Button { openWindow(id: "settings-window") } label: {

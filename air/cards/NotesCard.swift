@@ -23,7 +23,7 @@ struct NotePage: Identifiable, Codable, Equatable {
 
 struct NotesCard: View {
     @AppStorage("notes_pages_data") private var pagesData: Data = Data()
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @State private var itemsByPage: [Int: [NoteItem]] = [:]
     @State private var newTask: String = ""
@@ -238,7 +238,7 @@ struct NotesCard: View {
 }
 
 private struct ToDoRow: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @Binding var item: NoteItem
     @Binding var draggedItem: NoteItem?

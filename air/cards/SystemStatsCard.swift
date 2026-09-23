@@ -313,7 +313,7 @@ struct FlowLayout: Layout {
 }
 
 struct SystemStatsCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @StateObject private var monitor = SystemMonitor()
     let timer = Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()

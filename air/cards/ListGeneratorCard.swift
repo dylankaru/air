@@ -21,7 +21,7 @@ struct DefaultListItem: Codable, Identifiable, Equatable {
 }
 
 struct ListGeneratorCard<T: Codable & Identifiable, RowContent: View>: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     let title: String
     let pool: [T]
@@ -230,7 +230,7 @@ struct ListGeneratorCard<T: Codable & Identifiable, RowContent: View>: View {
 }
 
 struct DefaultListGeneratorCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     @State private var config: UserGeneratorConfig = {
         JSONManager.load(UserGeneratorConfig.self, from: listGeneratorConfigFilename) ?? UserGeneratorConfig()
     }()

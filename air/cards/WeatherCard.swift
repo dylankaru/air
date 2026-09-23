@@ -43,7 +43,7 @@ final class WeatherLocationProvider: NSObject, CLLocationManagerDelegate {
 }
 
 struct WeatherCard: View {
-    @AppStorage("air_theme") private var theme: Theme = .light
+    @Environment(\.activeTheme) private var theme
     
     @State private var weather: WeatherResponse?
     @State private var isLoading = true
